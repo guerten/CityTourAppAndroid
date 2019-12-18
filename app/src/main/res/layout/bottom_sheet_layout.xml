@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@android:color/white"
-    app:behavior_hideable="true"
-    app:behavior_peekHeight="56dp"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="50dp"
     app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
     <TextView
@@ -19,7 +19,7 @@
         android:drawablePadding="16dp"
         android:drawableLeft="@drawable/ico_facebook"
         android:drawableStart="@drawable/ico_facebook"
-        android:text="Facebook"
+        android:text="Facebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdgFacebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdgFacebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdgFacebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdgFacebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdgFacebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdgFacebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdgFacebook sefsefgsegsadrgsad rgsdgs dgredg drgd srg sdg sdg"
         android:textSize="16sp" />
 
     <View

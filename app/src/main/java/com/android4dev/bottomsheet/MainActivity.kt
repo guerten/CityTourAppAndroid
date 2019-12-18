@@ -3,44 +3,70 @@ package com.android4dev.bottomsheet
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
+import android.support.v7.app.AppCompatActivity
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import com.android4dev.bottomsheet.base.BaseActivity
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottom_sheet_layout.*
-import android.support.design.widget.BottomSheetDialog
-import android.widget.Button
 import android.widget.Toast
-import kotlinx.android.synthetic.main.bottom_sheet_layout.view.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : BaseActivity(), View.OnClickListener {
+class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
+    private lateinit var mMap: GoogleMap
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        Log.d("sjoeifj", "soiefjoisef")
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.my_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.open_close_bottomSheet -> {
+                openCloseBottomSheet()
+                Toast.makeText(applicationContext, "open_close_bottomSheet", Toast.LENGTH_LONG).show()
+                return true
+            }
+            R.id.action_exit ->{
+                Toast.makeText(applicationContext, "action_exit", Toast.LENGTH_LONG).show()
+                return true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val mapFragment = supportFragmentManager
+                .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
         initView()
+        setSupportActionBar(toolbar)
+
+    }
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+
+        // Add a marker in Sydney and move the camera
+        val sydney = LatLng(-34.0, 151.0)
+        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
     }
 
     private fun initView() {
-        /* Nos vamos a poder ahorrar esto ya que en el build.gradle hemos */
-        var buttonSlideUp = findViewById(R.id.buttonSlideUp) as Button
-        buttonSlideUp.setOnClickListener(this)
-        buttonBottomSheetDialog.setOnClickListener(this)
-        buttonBottomSheetDialogFragment.setOnClickListener(this)
-       textViewFacebook.setOnClickListener {
-            Toast.makeText(this,"Facebook",Toast.LENGTH_SHORT).show()
-        }
-        textViewTwitter.setOnClickListener {
-            Toast.makeText(this,"Twitter",Toast.LENGTH_SHORT).show()
-        }
-        textViewInstagram.setOnClickListener {
-            Toast.makeText(this,"Instagram",Toast.LENGTH_SHORT).show()
-        }
-        textViewLinkedin.setOnClickListener {
-            Toast.makeText(this,"Linkedin",Toast.LENGTH_SHORT).show()
-        }
         bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
@@ -50,73 +76,34 @@ class MainActivity : BaseActivity(), View.OnClickListener {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 when (newState) {
                     BottomSheetBehavior.STATE_COLLAPSED -> {
-                        buttonSlideUp.text = "Slide Up"
+                        Toast.makeText(this@MainActivity, "STATE_COLLAPSED", Toast.LENGTH_SHORT).show()
                     }
                     BottomSheetBehavior.STATE_HIDDEN -> {
-
+                        Toast.makeText(this@MainActivity, "STATE_HIDDEN", Toast.LENGTH_SHORT).show()
                     }
                     BottomSheetBehavior.STATE_EXPANDED -> {
-                        buttonSlideUp.text = "Slide Down"
+
+                        Toast.makeText(this@MainActivity, "STATE_EXPANDED", Toast.LENGTH_SHORT).show()
                     }
                     BottomSheetBehavior.STATE_DRAGGING -> {
-
+                        Toast.makeText(this@MainActivity, "STATE_DRAGGING", Toast.LENGTH_SHORT).show()
                     }
                     BottomSheetBehavior.STATE_SETTLING -> {
-
+                        Toast.makeText(this@MainActivity, "STATE_SETTLING", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         })
     }
 
-    override fun onClick(clickView: View?) {
-        when (clickView) {
-            buttonSlideUp -> {
-                slideUpDownBottomSheet()
-            }
-/*            buttonBottomSheetDialogFragment -> {
-                showBottomSheetDialogFragment()
-            }*/
-            buttonBottomSheetDialog -> {
-                showBottomSheetDialog()
-            }
-        }
-    }
-
     /***
      * Manually Slide up and Slide Down
      */
-    private fun slideUpDownBottomSheet() {
+    private fun openCloseBottomSheet() {
         if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-            buttonSlideUp.text = "Slide Down";
         } else {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED;
-            buttonSlideUp.text = "Slide Up"
         }
     }
-
-    private fun showBottomSheetDialog() {
-        val view = layoutInflater.inflate(R.layout.bottom_sheet_layout, null)
-        val dialog = BottomSheetDialog(this)
-        dialog.setContentView(view)
-        view.textViewFacebook.setOnClickListener {
-            Toast.makeText(this, "Facebook", Toast.LENGTH_SHORT).show()
-        }
-        view.textViewTwitter.setOnClickListener {
-            Toast.makeText(this, "Twitter", Toast.LENGTH_SHORT).show()
-        }
-        view.textViewInstagram.setOnClickListener {
-            Toast.makeText(this, "Instagram", Toast.LENGTH_SHORT).show()
-        }
-        view.textViewLinkedin.setOnClickListener {
-            Toast.makeText(this, "Linkedin", Toast.LENGTH_SHORT).show()
-        }
-        dialog.show()
-    }
-
-/*    private fun showBottomSheetDialogFragment() {
-        val bottomSheetFragment = BottomSheetFragment()
-        bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
-    }*/
 }
