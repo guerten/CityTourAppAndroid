@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.GridLayoutManager
+import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import kotlinx.android.synthetic.main.bottom_sheet_layout.*
+import kotlinx.android.synthetic.main.fragment_bottom_sheet.*
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -23,6 +25,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
+    val turiscicPlacesList: ArrayList<String> = ArrayList()
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         Log.d("sjoeifj", "soiefjoisef")
@@ -50,11 +53,13 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
+
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         initView()
-        setSupportActionBar(toolbar)
+
 
     }
     override fun onMapReady(googleMap: GoogleMap) {
@@ -68,6 +73,19 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     private fun initView() {
         bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
+        // Loads animals into the ArrayList
+        addTuristicPlacesToList()
+
+        // Creates a vertical Layout Manager
+        turisticPlacesList.layoutManager = LinearLayoutManager(this)
+
+        // You can use GridLayoutManager if you want multiple columns. Enter the number of columns as a parameter.
+        // turisticPlacesList.layoutManager = GridLayoutManager(this, 2)
+
+        // Access the RecyclerView Adapter and load the data into it
+        // turisticPlacesList.isNestedScrollingEnabled = false
+
+        turisticPlacesList.adapter = TuristicPlaceAdapter(turiscicPlacesList, this)
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
 
@@ -95,6 +113,28 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             }
         })
     }
+
+    fun addTuristicPlacesToList() {
+        turiscicPlacesList.add("Goya")
+        turiscicPlacesList.add("La lonja")
+        turiscicPlacesList.add("El pilar")
+        turiscicPlacesList.add("La seo")
+        turiscicPlacesList.add("Aljafería")
+        turiscicPlacesList.add("Catedral del salvador")
+        turiscicPlacesList.add("2Goya")
+        turiscicPlacesList.add("2La lonja")
+        turiscicPlacesList.add("2El pilar")
+        turiscicPlacesList.add("2La seo")
+        turiscicPlacesList.add("2Aljafería")
+        turiscicPlacesList.add("2Catedral del salvador")
+        turiscicPlacesList.add("3Goya")
+        turiscicPlacesList.add("3La lonja")
+        turiscicPlacesList.add("3El pilar")
+        turiscicPlacesList.add("3La seo")
+        turiscicPlacesList.add("3Aljafería")
+        turiscicPlacesList.add("3Catedral del salvador")
+    }
+
 
     /***
      * Manually Slide up and Slide Down
