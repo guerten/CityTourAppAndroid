@@ -1,8 +1,9 @@
-package com.android4dev.bottomsheet
+package com.android4dev.CityTourApp
 
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
+import android.support.design.widget.CoordinatorLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
@@ -11,7 +12,7 @@ import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_bottom_sheet.*
 import android.widget.Toast
-import com.android4dev.bottomsheet.models.TouristicPlace
+import com.android4dev.CityTourApp.models.TouristicPlace
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -19,10 +20,11 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
+import android.support.v7.widget.DividerItemDecoration
+import kotlinx.android.synthetic.main.fragment_map.*
 
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback {
-
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
     val touristicPlacesList: ArrayList<TouristicPlace> = ArrayList()
@@ -53,15 +55,15 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+/*
         setSupportActionBar(toolbar)
-
+*/
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         initBottomSheetView()
-
-
     }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
@@ -73,22 +75,28 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     private fun initBottomSheetView() {
         bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
-        // Loads animals into the ArrayList
+
         addTouristicPlacesToList()
 
         // Creates a vertical Layout Manager
         turisticPlacesList.layoutManager = LinearLayoutManager(this)
 
-        // You can use GridLayoutManager if you want multiple columns. Enter the number of columns as a parameter.
-        // turisticPlacesList.layoutManager = GridLayoutManager(this, 2)
-
-        // Access the RecyclerView Adapter and load the data into it
-        // turisticPlacesList.isNestedScrollingEnabled = false
+        // adding de dividir for the recycleView
+        var mDividerItemDecoration = DividerItemDecoration(turisticPlacesList.context, DividerItemDecoration.VERTICAL)
+        turisticPlacesList.addItemDecoration(mDividerItemDecoration)
 
         turisticPlacesList.adapter = TouristicPlaceAdapter(touristicPlacesList, this)
+
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
 
+                var mapLayoutParams = CoordinatorLayout.LayoutParams(mainActivityCoordinator.width, bottomSheet.top)
+                fragmentLayoutMap.layoutParams = mapLayoutParams
+/*
+                fragmentLayoutMap.setPadding(0,0,0,bottomSheetMinHeight+bottomSheetShiftDown)
+                Toast.makeText(this@MainActivity, mainActivityCoordinator.width.toString(), Toast.LENGTH_SHORT).show()
+*/
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -100,10 +108,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                         Toast.makeText(this@MainActivity, "STATE_HIDDEN", Toast.LENGTH_SHORT).show()
                     }
                     BottomSheetBehavior.STATE_EXPANDED -> {
-
                         Toast.makeText(this@MainActivity, "STATE_EXPANDED", Toast.LENGTH_SHORT).show()
                     }
                     BottomSheetBehavior.STATE_DRAGGING -> {
+
                         Toast.makeText(this@MainActivity, "STATE_DRAGGING", Toast.LENGTH_SHORT).show()
                     }
                     BottomSheetBehavior.STATE_SETTLING -> {
@@ -115,24 +123,24 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     fun addTouristicPlacesToList() {
-        touristicPlacesList.add(TouristicPlace("Goya", "La descripción de Goya"))
-        touristicPlacesList.add(TouristicPlace("La lonja", "La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
-        touristicPlacesList.add(TouristicPlace("El pilar", "no description el siguiente"))
-        touristicPlacesList.add(TouristicPlace("La seo", ""))
-        touristicPlacesList.add(TouristicPlace("Aljafería", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
-        touristicPlacesList.add(TouristicPlace("Catedral del salvador", "sioejfoise"))
-        touristicPlacesList.add(TouristicPlace("2Goya", "La descripción de Goya"))
-        touristicPlacesList.add(TouristicPlace("2La lonja", "La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
-        touristicPlacesList.add(TouristicPlace("2El pilar", "no description el siguiente"))
-        touristicPlacesList.add(TouristicPlace("2La seo", ""))
-        touristicPlacesList.add(TouristicPlace("2Aljafería", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
-        touristicPlacesList.add(TouristicPlace("2Catedral del salvador", "sioejfoise"))
-        touristicPlacesList.add(TouristicPlace("3Goya", "La descripción de Goya"))
-        touristicPlacesList.add(TouristicPlace("3La lonja", "La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
-        touristicPlacesList.add(TouristicPlace("3El pilar", "no description el siguiente"))
-        touristicPlacesList.add(TouristicPlace("3La seo", ""))
-        touristicPlacesList.add(TouristicPlace("3Aljafería", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
-        touristicPlacesList.add(TouristicPlace("3Catedral del salvador", "sioejfoise"))
+        touristicPlacesList.add(TouristicPlace("Goya", "goya", "La descripción de Goya"))
+        touristicPlacesList.add(TouristicPlace("La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
+        touristicPlacesList.add(TouristicPlace("El pilar", "el_pilar", "no description el siguiente"))
+        touristicPlacesList.add(TouristicPlace("La seo","laseo", ""))
+        touristicPlacesList.add(TouristicPlace("Aljafería", "aljaferia", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
+        touristicPlacesList.add(TouristicPlace("Catedral del salvador", "catedral_del_salvador","sioejfoise"))
+        touristicPlacesList.add(TouristicPlace("2Goya", "goya", "La descripción de Goya"))
+        touristicPlacesList.add(TouristicPlace("2La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
+        touristicPlacesList.add(TouristicPlace("2El pilar", "el_pilar", "no description el siguiente"))
+        touristicPlacesList.add(TouristicPlace("2La seo","laseo", ""))
+        touristicPlacesList.add(TouristicPlace("2Aljafería", "aljaferia", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
+        touristicPlacesList.add(TouristicPlace("2Catedral del salvador", "catedral_del_salvador","sioejfoise"))
+        touristicPlacesList.add(TouristicPlace("3Goya", "goya", "La descripción de Goya"))
+        touristicPlacesList.add(TouristicPlace("3La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
+        touristicPlacesList.add(TouristicPlace("3El pilar", "el_pilar", "no description el siguiente"))
+        touristicPlacesList.add(TouristicPlace("3La seo","laseo", ""))
+        touristicPlacesList.add(TouristicPlace("3Aljafería", "aljaferia", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
+        touristicPlacesList.add(TouristicPlace("3Catedral del salvador", "catedral_del_salvador","sioejfoise"))
 
     }
 

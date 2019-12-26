@@ -1,4 +1,4 @@
-package com.android4dev.bottomsheet
+package com.android4dev.CityTourApp
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("com.android4dev.bottomsheet", appContext.packageName)
+        assertEquals("com.android4dev.CityTourApp", appContext.packageName)
     }
 }
