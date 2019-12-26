@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottomSheet"
+    android:layout_width="match_parent"
+    android:background="@android:color/white"
+    android:layout_height="500dp"
+    android:orientation="vertical"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="56dp"
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior"
+    tools:context=".MainActivity">
+
+<!--
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+-->
+
+
+        <android.support.design.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/textView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:text="Lugares importantes cercanos"
+                    android:textAlignment="center" />
+            </LinearLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/turisticPlacesList"
+                android:name="com.android4dev.bottomsheet.BottomSheetFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/linearLayout"
+                android:layout_marginTop="0dp"
+                android:paddingTop="56dp"
+                app:layoutManager="LinearLayoutManager"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintVertical_bias="1.0" />
+
+
+        </android.support.design.widget.CoordinatorLayout>
+<!--
+    </android.support.v4.widget.NestedScrollView>
+-->
+
+
+</android.support.constraint.ConstraintLayout>
