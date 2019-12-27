@@ -1,4 +1,4 @@
-package com.android4dev.bottomsheet
+package com.android4dev.CityTourApp
 
 import org.junit.Test
 

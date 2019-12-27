@@ -1,4 +1,4 @@
-package com.android4dev.bottomsheet.dummy
+package com.android4dev.CityTourApp.dummy
 
 import java.util.ArrayList
 import java.util.HashMap
