@@ -1,9 +1,18 @@
 package com.android4dev.CityTourApp
 
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
 import android.support.design.widget.CoordinatorLayout
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
@@ -21,13 +30,96 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.Marker
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import kotlinx.android.synthetic.main.fragment_map.*
 
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback {
+
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
-    val touristicPlacesList: ArrayList<TouristicPlace> = ArrayList()
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private val touristicPlacesList: ArrayList<TouristicPlace> = ArrayList()
+    private var lastPositionMarker: Marker? = null
+
+    companion object {
+        var instance: MainActivity? = null
+
+        fun getMainInstance(): MainActivity {
+            return instance!!
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val mapFragment = supportFragmentManager
+                .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+        initBottomSheetView()
+
+        instance = this
+
+        Dexter.withActivity(this)
+                .withPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                .withListener(object: PermissionListener {
+                    override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                        updateLocation()
+                    }
+
+                    override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest?, token: PermissionToken?) {}
+
+                    override fun onPermissionDenied(response: PermissionDeniedResponse?) {
+                        Toast.makeText(this@MainActivity, "You must accept this permission", Toast.LENGTH_LONG).show()
+                    }
+
+                }).check()
+    }
+
+    private fun updateLocation() {
+        buildLocationRequest()
+
+        if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, getPendingIntent())
+        }
+    }
+
+    fun updatePosition(location: Location) {
+        Log.e("LOCATION FROM RECEIVER", "drawing new position from receiver")
+        this@MainActivity.runOnUiThread {
+            lastPositionMarker?.remove()
+            val newPosition = LatLng(location.latitude, location.longitude)
+            val markerOptions = MarkerOptions().position(newPosition).title("You are here!!")
+            lastPositionMarker = mMap.addMarker(markerOptions)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 2000.0F))
+        }
+    }
+
+    private fun getPendingIntent(): PendingIntent? {
+        val intent = Intent(this@MainActivity, LocationService::class.java)
+        intent.action = LocationService.ACTION_PROCESS_UPDATE
+        return PendingIntent.getBroadcast(this@MainActivity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    private fun buildLocationRequest() {
+        locationRequest = LocationRequest()
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 5000
+        locationRequest.fastestInterval = 3000
+        locationRequest.smallestDisplacement = 10f
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         Log.d("sjoeifj", "soiefjoisef")
@@ -51,26 +143,12 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         }
     }
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-/*
-        setSupportActionBar(toolbar)
-*/
-        val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-        initBottomSheetView()
-    }
-
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        settingsButton.setOnClickListener {
+            // Open new view with settings
+        }
     }
 
     private fun initBottomSheetView() {
@@ -82,7 +160,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         turisticPlacesList.layoutManager = LinearLayoutManager(this)
 
         // adding de dividir for the recycleView
-        var mDividerItemDecoration = DividerItemDecoration(turisticPlacesList.context, DividerItemDecoration.VERTICAL)
+        val mDividerItemDecoration = DividerItemDecoration(turisticPlacesList.context, DividerItemDecoration.VERTICAL)
         turisticPlacesList.addItemDecoration(mDividerItemDecoration)
 
         turisticPlacesList.adapter = TouristicPlaceAdapter(touristicPlacesList, this)
@@ -91,7 +169,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
 
-                var mapLayoutParams = CoordinatorLayout.LayoutParams(mainActivityCoordinator.width, bottomSheet.top)
+                val mapLayoutParams = CoordinatorLayout.LayoutParams(mainActivityCoordinator.width, bottomSheet.top)
                 fragmentLayoutMap.layoutParams = mapLayoutParams
 /*
                 fragmentLayoutMap.setPadding(0,0,0,bottomSheetMinHeight+bottomSheetShiftDown)
