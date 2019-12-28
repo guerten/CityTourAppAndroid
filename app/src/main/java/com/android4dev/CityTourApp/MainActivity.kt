@@ -1,18 +1,15 @@
 package com.android4dev.CityTourApp
 
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
 import android.support.design.widget.CoordinatorLayout
 import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
@@ -26,14 +23,13 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.RecyclerView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.*
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -41,7 +37,7 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import kotlinx.android.synthetic.main.fragment_map.*
-
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
@@ -64,9 +60,12 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        addTouristicPlacesToList()
+
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
         initBottomSheetView()
 
         instance = this
@@ -97,7 +96,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     fun updatePosition(location: Location) {
-        Log.e("LOCATION FROM RECEIVER", "drawing new position from receiver")
+        Log.e("is location", "drawing new position from receiver")
+
         this@MainActivity.runOnUiThread {
             lastPositionMarker?.remove()
             val newPosition = LatLng(location.latitude, location.longitude)
@@ -143,8 +143,37 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         }
     }
 
+    private fun isClockwise(region: List<LatLng>) : Boolean {
+        val size = region.size
+        var a = region[size - 1]
+        var aux = 0.0
+
+        for (x in 0 until size) {
+            val b = region[x]
+            aux += (b.latitude - a.latitude) * (b.longitude + a.latitude)
+            a = b
+        }
+        return aux <= 0
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+
+        for (tp in touristicPlacesList) {
+            Log.e("IS TP CLOCKWISE?", "${isClockwise(tp.poligonArea)}")
+            val polygon = mMap.addPolygon(PolygonOptions().add(tp.poligonArea[0], tp.poligonArea[1], tp.poligonArea[2], tp.poligonArea[3])
+                    .strokeColor(Color.RED)
+                    .fillColor(Color.BLUE))
+            polygon.isVisible = false
+            val polyline = mMap.addPolyline(PolylineOptions()
+                    .clickable(false)
+                    .add(
+                            tp.poligonArea[0],
+                            tp.poligonArea[1],
+                            tp.poligonArea[2],
+                            tp.poligonArea[3]
+                    ))
+        }
 
         settingsButton.setOnClickListener {
             // Open new view with settings
@@ -154,10 +183,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     private fun initBottomSheetView() {
         bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
 
-        addTouristicPlacesToList()
-
         // Creates a vertical Layout Manager
-        turisticPlacesList.layoutManager = LinearLayoutManager(this)
+        turisticPlacesList.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager?
 
         // adding de dividir for the recycleView
         val mDividerItemDecoration = DividerItemDecoration(turisticPlacesList.context, DividerItemDecoration.VERTICAL)
@@ -201,7 +228,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     fun addTouristicPlacesToList() {
-        touristicPlacesList.add(TouristicPlace("Goya", "goya", "La descripción de Goya"))
+        touristicPlacesList.add(TouristicPlace("Casa", "goya", LatLng(41.6653028,-0.8684141), listOf(LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469)  ), "Esta es mi casica"))
+        /*touristicPlacesList.add(TouristicPlace("Goya", "goya", "La descripción de Goya"))
         touristicPlacesList.add(TouristicPlace("La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
         touristicPlacesList.add(TouristicPlace("El pilar", "el_pilar", "no description el siguiente"))
         touristicPlacesList.add(TouristicPlace("La seo","laseo", ""))
@@ -218,7 +246,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         touristicPlacesList.add(TouristicPlace("3El pilar", "el_pilar", "no description el siguiente"))
         touristicPlacesList.add(TouristicPlace("3La seo","laseo", ""))
         touristicPlacesList.add(TouristicPlace("3Aljafería", "aljaferia", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
-        touristicPlacesList.add(TouristicPlace("3Catedral del salvador", "catedral_del_salvador","sioejfoise"))
+        touristicPlacesList.add(TouristicPlace("3Catedral del salvador", "catedral_del_salvador","sioejfoise"))*/
 
     }
 
