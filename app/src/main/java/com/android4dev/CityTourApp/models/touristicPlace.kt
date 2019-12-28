@@ -6,6 +6,7 @@ class Coordinates (val latitude: Float , val longitude: Float)
 
 class PoligonArea (val array: Array<Coordinates>)
 
+enum class TP_Type { NATURE, HISTORIC }
 
 class TouristicPlace(
         val title: String,
@@ -13,5 +14,6 @@ class TouristicPlace(
         val imageFileName: String,
         var coordinates: LatLng,
         val poligonArea: List<LatLng>,
-        val description: String
+        val description: String,
+        val type: TP_Type
 )

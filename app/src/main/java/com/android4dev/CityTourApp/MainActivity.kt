@@ -26,6 +26,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
+import com.android4dev.CityTourApp.models.TP_Type
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -159,9 +160,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        mMap.uiSettings.isScrollGesturesEnabled = false
+        mMap.uiSettings.isZoomGesturesEnabled = true
         for (tp in touristicPlacesList) {
             Log.e("IS TP CLOCKWISE?", "${isClockwise(tp.poligonArea)}")
-            val polygon = mMap.addPolygon(PolygonOptions().add(tp.poligonArea[0], tp.poligonArea[1], tp.poligonArea[2], tp.poligonArea[3])
+            /*val polygon = mMap.addPolygon(PolygonOptions().add(tp.poligonArea[0], tp.poligonArea[1], tp.poligonArea[2], tp.poligonArea[3])
                     .strokeColor(Color.RED)
                     .fillColor(Color.BLUE))
             polygon.isVisible = false
@@ -172,7 +175,15 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                             tp.poligonArea[1],
                             tp.poligonArea[2],
                             tp.poligonArea[3]
-                    ))
+                    ))*/
+            val icon: BitmapDescriptor = when (tp.type) {
+                TP_Type.HISTORIC -> BitmapDescriptorFactory.fromResource(R.drawable.historic)
+
+                TP_Type.NATURE -> BitmapDescriptorFactory.fromResource(R.drawable.tree)
+            }
+            val markerOptions = MarkerOptions().position(tp.coordinates).icon(icon)
+            lastPositionMarker = mMap.addMarker(markerOptions)
+
         }
 
         settingsButton.setOnClickListener {
@@ -228,7 +239,21 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     fun addTouristicPlacesToList() {
-        touristicPlacesList.add(TouristicPlace("Casa", "goya", LatLng(41.6653028,-0.8684141), listOf(LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469)  ), "Esta es mi casica"))
+        touristicPlacesList.add(TouristicPlace(
+                "Casa",
+                "goya",
+                LatLng(41.665167, -0.869308),
+                listOf(LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469)),
+                "Esta es mi casica",
+                TP_Type.NATURE))
+        touristicPlacesList.add(TouristicPlace(
+                "Azucarera",
+                "el_pilar",
+                LatLng(41.6638817,-0.868364),
+                listOf(LatLng(41.663603, -0.868355), LatLng(41.6643099,-0.8682033), LatLng(41.6643099,-0.8682033), LatLng(41.6643099,-0.8682033)),
+                "Azucarera to guapa",
+                TP_Type.HISTORIC))
+
         /*touristicPlacesList.add(TouristicPlace("Goya", "goya", "La descripción de Goya"))
         touristicPlacesList.add(TouristicPlace("La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
         touristicPlacesList.add(TouristicPlace("El pilar", "el_pilar", "no description el siguiente"))
