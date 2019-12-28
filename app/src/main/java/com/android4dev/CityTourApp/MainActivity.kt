@@ -3,7 +3,6 @@ package com.android4dev.CityTourApp
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
@@ -25,7 +24,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import com.android4dev.CityTourApp.models.TP_Type
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
@@ -123,7 +121,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        Log.d("sjoeifj", "soiefjoisef")
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.my_menu, menu)
         return true
@@ -160,8 +157,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        mMap.uiSettings.isScrollGesturesEnabled = false
-        mMap.uiSettings.isZoomGesturesEnabled = true
+        // mMap.isMyLocationEnabled = true
+
+        /*mMap.uiSettings.isScrollGesturesEnabled = false
+        mMap.uiSettings.isZoomGesturesEnabled = true*/
+
         for (tp in touristicPlacesList) {
             Log.e("IS TP CLOCKWISE?", "${isClockwise(tp.poligonArea)}")
             /*val polygon = mMap.addPolygon(PolygonOptions().add(tp.poligonArea[0], tp.poligonArea[1], tp.poligonArea[2], tp.poligonArea[3])
@@ -182,7 +182,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                 TP_Type.NATURE -> BitmapDescriptorFactory.fromResource(R.drawable.tree)
             }
             val markerOptions = MarkerOptions().position(tp.coordinates).icon(icon)
-            lastPositionMarker = mMap.addMarker(markerOptions)
+            mMap.addMarker(markerOptions)
 
         }
 
@@ -195,7 +195,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
 
         // Creates a vertical Layout Manager
-        turisticPlacesList.layoutManager = LinearLayoutManager(this) as RecyclerView.LayoutManager?
+        turisticPlacesList.layoutManager = LinearLayoutManager(this)
 
         // adding de dividir for the recycleView
         val mDividerItemDecoration = DividerItemDecoration(turisticPlacesList.context, DividerItemDecoration.VERTICAL)
