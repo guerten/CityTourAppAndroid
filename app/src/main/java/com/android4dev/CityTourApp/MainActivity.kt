@@ -45,6 +45,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         initBottomSheetView()
     }
 
+    override fun onResume() {
+        overridePendingTransition(R.anim.slide_back_in, R.anim.slide_back_out)
+        super.onResume()
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 

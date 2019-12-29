@@ -22,18 +22,12 @@ class TouristicPlaceDetail : AppCompatActivity() {
 
         overridePendingTransition(R.anim.slide_in, R.anim.slide_out)
 
-
         touristicPlace = intent.extras.get("tpItem") as TouristicPlace
 
         tpdTitle.text = touristicPlace.title
 
         tpdScore.text = touristicPlace.score.toString()
         tpdDescription.text = touristicPlace.description
-
-
-
-        /*   tpSubtitle.text = touristicPlace.subtitle
-   */
 
         tpdImage.setImageResource(resources.getIdentifier(touristicPlace.imageFileName, "drawable", packageName))
 
