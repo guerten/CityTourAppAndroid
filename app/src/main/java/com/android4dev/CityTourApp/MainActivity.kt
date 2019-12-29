@@ -6,9 +6,6 @@ import android.support.design.widget.BottomSheetBehavior
 import android.support.design.widget.CoordinatorLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_bottom_sheet.*
 import android.widget.Toast
@@ -21,46 +18,30 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
+import com.android4dev.CityTourApp.data.DataInitializer
 import kotlinx.android.synthetic.main.fragment_map.*
+import java.util.*
+import kotlin.Comparator
+import kotlin.collections.ArrayList
 
 
-class MainActivity : AppCompatActivity() , OnMapReadyCallback {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+
+    private var currentLocation: LatLng = LatLng(42.0, 2.0)
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
-    val touristicPlacesList: ArrayList<TouristicPlace> = ArrayList()
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        Log.d("sjoeifj", "soiefjoisef")
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.my_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.open_close_bottomSheet -> {
-                openCloseBottomSheet()
-                Toast.makeText(applicationContext, "open_close_bottomSheet", Toast.LENGTH_LONG).show()
-                return true
-            }
-            R.id.action_exit ->{
-                Toast.makeText(applicationContext, "action_exit", Toast.LENGTH_LONG).show()
-                return true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
+    val touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-/*
-        setSupportActionBar(toolbar)
-*/
+
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
+
         mapFragment.getMapAsync(this)
+
         initBottomSheetView()
     }
 
@@ -74,18 +55,19 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     private fun initBottomSheetView() {
+
+
         bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
 
-        addTouristicPlacesToList()
-
         // Creates a vertical Layout Manager
-        turisticPlacesList.layoutManager = LinearLayoutManager(this)
+        touristicPlacesRecyclerView.layoutManager = LinearLayoutManager(this)
 
         // adding de dividir for the recycleView
-        var mDividerItemDecoration = DividerItemDecoration(turisticPlacesList.context, DividerItemDecoration.VERTICAL)
-        turisticPlacesList.addItemDecoration(mDividerItemDecoration)
+        var mDividerItemDecoration = DividerItemDecoration(touristicPlacesRecyclerView.context, DividerItemDecoration.VERTICAL)
+        touristicPlacesRecyclerView.addItemDecoration(mDividerItemDecoration)
 
-        turisticPlacesList.adapter = TouristicPlaceAdapter(touristicPlacesList, this)
+        Collections.sort(touristicPlacesList, SortPlaces(currentLocation))
+        touristicPlacesRecyclerView.adapter = TouristicPlaceAdapter(touristicPlacesList, this)
 
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
 
@@ -122,37 +104,33 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         })
     }
 
-    fun addTouristicPlacesToList() {
-        touristicPlacesList.add(TouristicPlace("Goya", "goya", "La descripción de Goya"))
-        touristicPlacesList.add(TouristicPlace("La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
-        touristicPlacesList.add(TouristicPlace("El pilar", "el_pilar", "no description el siguiente"))
-        touristicPlacesList.add(TouristicPlace("La seo","laseo", ""))
-        touristicPlacesList.add(TouristicPlace("Aljafería", "aljaferia", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
-        touristicPlacesList.add(TouristicPlace("Catedral del salvador", "catedral_del_salvador","sioejfoise"))
-        touristicPlacesList.add(TouristicPlace("2Goya", "goya", "La descripción de Goya"))
-        touristicPlacesList.add(TouristicPlace("2La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
-        touristicPlacesList.add(TouristicPlace("2El pilar", "el_pilar", "no description el siguiente"))
-        touristicPlacesList.add(TouristicPlace("2La seo","laseo", ""))
-        touristicPlacesList.add(TouristicPlace("2Aljafería", "aljaferia", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
-        touristicPlacesList.add(TouristicPlace("2Catedral del salvador", "catedral_del_salvador","sioejfoise"))
-        touristicPlacesList.add(TouristicPlace("3Goya", "goya", "La descripción de Goya"))
-        touristicPlacesList.add(TouristicPlace("3La lonja", "la_lonja","La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou"))
-        touristicPlacesList.add(TouristicPlace("3El pilar", "el_pilar", "no description el siguiente"))
-        touristicPlacesList.add(TouristicPlace("3La seo","laseo", ""))
-        touristicPlacesList.add(TouristicPlace("3Aljafería", "aljaferia", "oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn"))
-        touristicPlacesList.add(TouristicPlace("3Catedral del salvador", "catedral_del_salvador","sioejfoise"))
+    private fun onLocationChanged() {
+        touristicPlacesList.clear()
+        Collections.sort(touristicPlacesList, SortPlaces(currentLocation));
+        touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
+    }
+}
 
+
+class SortPlaces(internal var currentLoc: LatLng) : Comparator<TouristicPlace> {
+    override fun compare(place1: TouristicPlace, place2: TouristicPlace): Int {
+        val lat1 = place1.coordinates.latitude
+        val lon1 = place1.coordinates.longitude
+        val lat2 = place2.coordinates.latitude
+        val lon2 = place2.coordinates.longitude
+
+        val distanceToPlace1 = distance(currentLoc.latitude, currentLoc.longitude, lat1, lon1)
+        val distanceToPlace2 = distance(currentLoc.latitude, currentLoc.longitude, lat2, lon2)
+        return (distanceToPlace1 - distanceToPlace2).toInt()
     }
 
-
-    /***
-     * Manually Slide up and Slide Down
-     */
-    private fun openCloseBottomSheet() {
-        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-        } else {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED;
-        }
+    fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Double {
+        val radius = 6378137.0   // approximate Earth radius, *in meters*
+        val deltaLat = toLat - fromLat
+        val deltaLon = toLon - fromLon
+        val angle = (2 * Math.asin(Math.sqrt(
+                Math.pow(Math.sin(deltaLat / 2), 2.0) + Math.cos(fromLat) * Math.cos(toLat) *
+                        Math.pow(Math.sin(deltaLon / 2), 2.0))))
+        return radius * angle
     }
 }
