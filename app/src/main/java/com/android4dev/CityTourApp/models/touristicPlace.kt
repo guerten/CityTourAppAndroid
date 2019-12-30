@@ -13,7 +13,8 @@ class TouristicPlace (
     val imageFileName: String,
     var coordinates: Coordinates,
     var description: String,
-    var score: Double
+    var score: Double,
+    var distance: Double? = null
     /*
         val poligonArea: PoligonArea,
 */

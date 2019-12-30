@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.activity_touristic_place_detail.*
 
 class TouristicPlaceDetail : AppCompatActivity() {
 
-    lateinit var touristicPlace: TouristicPlace
+    private lateinit var touristicPlace: TouristicPlace
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
