@@ -188,6 +188,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
         settingsButton.setOnClickListener {
             // Open new view with settings
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
         }
     }
 
