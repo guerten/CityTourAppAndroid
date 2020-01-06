@@ -10,6 +10,7 @@ import android.os.Looper
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
+import com.android4dev.CityTourApp.models.TouristicPlace
 import com.google.android.gms.location.*
 
 
@@ -17,6 +18,7 @@ class MyBackgroundLocationService : Service() {
 
     private val TAG = "BACKGROUND LOC SERVICE"
     private var mLocationClient: FusedLocationProviderClient? = null
+    private val closeTouristicPlaces: ArrayList<TouristicPlace> = ArrayList()
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult?) {
@@ -24,6 +26,7 @@ class MyBackgroundLocationService : Service() {
             if (locationResult == null) {
                 return
             }
+
             val location = locationResult.locations.last()
 
         }

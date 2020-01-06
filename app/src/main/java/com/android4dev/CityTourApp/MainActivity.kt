@@ -112,13 +112,17 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     fun updatePosition(location: Location) {
         //Log.e("is location", "drawing new position from receiver")
 
-        this@MainActivity.runOnUiThread {
+        /*this@MainActivity.runOnUiThread {
             lastPositionMarker?.remove()
             val newPosition = LatLng(location.latitude, location.longitude)
             val markerOptions = MarkerOptions().position(newPosition).title("You are here!!")
             lastPositionMarker = mMap.addMarker(markerOptions)
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 2000.0F))
-        }
+        }*/
+
+        /***
+         * Here we can check if a touristic place is discovered when app is running in foreground
+         */
     }
 
     private fun buildLocationRequest() {
@@ -166,25 +170,12 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // mMap.isMyLocationEnabled = true
+        mMap.isMyLocationEnabled = true
 
         /*mMap.uiSettings.isScrollGesturesEnabled = false
         mMap.uiSettings.isZoomGesturesEnabled = true*/
 
         for (tp in touristicPlacesList) {
-            //Log.e("IS TP CLOCKWISE?", "${isClockwise(tp.poligonArea)}")
-            /*val polygon = mMap.addPolygon(PolygonOptions().add(tp.poligonArea[0], tp.poligonArea[1], tp.poligonArea[2], tp.poligonArea[3])
-                    .strokeColor(Color.RED)
-                    .fillColor(Color.BLUE))
-            polygon.isVisible = false
-            val polyline = mMap.addPolyline(PolylineOptions()
-                    .clickable(false)
-                    .add(
-                            tp.poligonArea[0],
-                            tp.poligonArea[1],
-                            tp.poligonArea[2],
-                            tp.poligonArea[3]
-                    ))*/
             val icon: BitmapDescriptor = when (tp.type) {
                 TP_Type.HISTORIC -> BitmapDescriptorFactory.fromResource(R.drawable.historic)
 
@@ -249,19 +240,19 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         })
     }
 
-    fun addTouristicPlacesToList() {
+    private fun addTouristicPlacesToList() {
         touristicPlacesList.add(TouristicPlace(
                 "Casa",
                 "goya",
                 LatLng(41.665167, -0.869308),
-                listOf(LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469), LatLng(41.6650169,-0.8691469)),
+                LatLng(41.665457, -0.868903),
                 "Esta es mi casica",
                 TP_Type.NATURE))
         touristicPlacesList.add(TouristicPlace(
                 "Azucarera",
                 "el_pilar",
                 LatLng(41.6638817,-0.868364),
-                listOf(LatLng(41.663603, -0.868355), LatLng(41.6643099,-0.8682033), LatLng(41.6643099,-0.8682033), LatLng(41.6643099,-0.8682033)),
+                LatLng(41.664124, -0.867887),
                 "Azucarera to guapa",
                 TP_Type.HISTORIC))
 
@@ -294,7 +285,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         } else {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED;
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
 }
