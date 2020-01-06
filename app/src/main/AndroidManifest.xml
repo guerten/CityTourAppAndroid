@@ -11,9 +11,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SettingsActivity"></activity>
+        <service
+            android:name=".MyBackgroundLocationService"
+            android:enabled="true"
+            android:exported="false"></service>
+
+        <activity android:name=".SettingsActivity" />
 
         <receiver android:name=".LocationService" />
+
+        <service
+            android:name=".LocationMonitoringService"
+            android:enabled="true"
+            android:label="Location Monitoring Service" />
 
         <uses-library
             android:name="org.apache.http.legacy"

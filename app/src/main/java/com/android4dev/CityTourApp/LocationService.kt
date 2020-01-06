@@ -16,7 +16,7 @@ class LocationService : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if(intent != null) {
 
-            val action = intent!!.action
+            val action = intent.action
 
             if(action != null && action == ACTION_PROCESS_UPDATE) {
 

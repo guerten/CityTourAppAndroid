@@ -1,12 +1,8 @@
 package com.android4dev.CityTourApp
 
-import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.Preference
 import android.preference.PreferenceFragment
-import android.preference.PreferenceManager
 import android.support.v4.app.FragmentActivity
-import android.util.Log
 
 
 class SettingsActivity : FragmentActivity() {

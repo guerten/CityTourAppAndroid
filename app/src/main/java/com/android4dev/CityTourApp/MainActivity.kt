@@ -11,7 +11,6 @@ import android.support.design.widget.CoordinatorLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,9 +24,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
 import com.android4dev.CityTourApp.models.TP_Type
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.*
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
@@ -44,6 +41,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var locationRequest: LocationRequest
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
     private val touristicPlacesList: ArrayList<TouristicPlace> = ArrayList()
     private var lastPositionMarker: Marker? = null
 
@@ -53,6 +51,16 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         fun getMainInstance(): MainActivity {
             return instance!!
         }
+    }
+
+    private fun startLocationService() {
+        val intent = Intent(this, MyBackgroundLocationService::class.java)
+        startService(intent)
+    }
+
+    private fun stopLocationService(view: View) {
+        val intent = Intent(this, MyBackgroundLocationService::class.java)
+        stopService(intent)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +82,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                 .withListener(object: PermissionListener {
                     override fun onPermissionGranted(response: PermissionGrantedResponse?) {
                         updateLocation()
+                        startLocationService()
                     }
 
                     override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest?, token: PermissionToken?) {}
@@ -94,8 +103,14 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         }
     }
 
+    private fun getPendingIntent(): PendingIntent? {
+        val intent = Intent(this@MainActivity, LocationService::class.java)
+        intent.action = LocationService.ACTION_PROCESS_UPDATE
+        return PendingIntent.getBroadcast(this@MainActivity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
     fun updatePosition(location: Location) {
-        Log.e("is location", "drawing new position from receiver")
+        //Log.e("is location", "drawing new position from receiver")
 
         this@MainActivity.runOnUiThread {
             lastPositionMarker?.remove()
@@ -104,12 +119,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             lastPositionMarker = mMap.addMarker(markerOptions)
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 2000.0F))
         }
-    }
-
-    private fun getPendingIntent(): PendingIntent? {
-        val intent = Intent(this@MainActivity, LocationService::class.java)
-        intent.action = LocationService.ACTION_PROCESS_UPDATE
-        return PendingIntent.getBroadcast(this@MainActivity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
     private fun buildLocationRequest() {
@@ -163,7 +172,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         mMap.uiSettings.isZoomGesturesEnabled = true*/
 
         for (tp in touristicPlacesList) {
-            Log.e("IS TP CLOCKWISE?", "${isClockwise(tp.poligonArea)}")
+            //Log.e("IS TP CLOCKWISE?", "${isClockwise(tp.poligonArea)}")
             /*val polygon = mMap.addPolygon(PolygonOptions().add(tp.poligonArea[0], tp.poligonArea[1], tp.poligonArea[2], tp.poligonArea[3])
                     .strokeColor(Color.RED)
                     .fillColor(Color.BLUE))
