@@ -14,6 +14,7 @@ class TouristicPlace (
     var coordinates: Coordinates,
     var description: String,
     var score: Double,
+    var audioGuideUrl: String,
     var distance: Double? = null
     /*
         val poligonArea: PoligonArea,

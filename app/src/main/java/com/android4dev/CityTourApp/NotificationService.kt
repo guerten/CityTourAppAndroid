@@ -61,13 +61,7 @@ class NotificationService : Service() {
 
 
     fun initAudio(intent: Intent) {
-/*        if (::touristicPlace.isInitialized){
-            Log.d("touristicPlace:::", touristicPlace.toString())
-        }*/
-
         touristicPlace = intent.getSerializableExtra("touristicPlace") as TouristicPlace
-        Log.d("touristicPlace", touristicPlace.title)
-
         if (mp != null) {
             if (mp!!.isPlaying) {
                 mp!!.stop()
@@ -75,28 +69,21 @@ class NotificationService : Service() {
                 mp!!.release()
                 mp = null
             }
-
         }
         mp = MediaPlayer()
-        val myUrl = "https://www.audioguias-bluehertz.es/audioguia_zaragoza/ingles/en_22_aljaferia.mp3"
+        val myUrl = touristicPlace.audioGuideUrl
         mp!!.apply {
             setDataSource(myUrl)
             prepare()
             start()
         }
-
-
-        Toast.makeText(applicationContext, "Handle the PLAY button", Toast.LENGTH_LONG).show()
     }
 
 
     fun playAudio() {
-
-        Log.d("osiejf", mp!!.isPlaying.toString())
-
         if (mp == null) {
             mp = MediaPlayer()
-            val myUrl = "https://www.audioguias-bluehertz.es/audioguia_zaragoza/ingles/en_22_aljaferia.mp3"
+            val myUrl = touristicPlace.audioGuideUrl
             mp!!.apply {
                 setDataSource(myUrl)
                 prepare()
@@ -104,18 +91,12 @@ class NotificationService : Service() {
             }
         } else {
             if (mp!!.isPlaying) {
-                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause)
-/*
-                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play_expanded,R.drawable.ic_action_pause)
-*/
+                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play)
                 NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
 
                 mp!!.pause()
             } else {
-                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play)
-/*
-                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play_expanded,R.drawable.ic_action_play)
-*/
+                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause)
                 NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
 
                 mp!!.start()

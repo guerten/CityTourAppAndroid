@@ -58,7 +58,7 @@
         android:contentDescription="@string/cd_play"
         android:background="@drawable/status_bg"
         android:layout_gravity="center_vertical"
-        android:src="@drawable/apollo_holo_dark_play" />
+        android:src="@drawable/ic_action_pause" />
 
 
     <ImageButton

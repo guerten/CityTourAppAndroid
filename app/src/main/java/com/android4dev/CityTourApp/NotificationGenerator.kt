@@ -53,7 +53,9 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
     private val description = "Test notification"
     lateinit var contexto: Context
     lateinit var smallView: RemoteViews
+/*
     lateinit var bigView: RemoteViews
+*/
     lateinit var notification: Notification
 
     companion object {
@@ -80,13 +82,17 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
 
         // Using RemoteViews to bind custom layouts into Notification
         smallView = RemoteViews(context.packageName, R.layout.status_bar)
+/*
         bigView = RemoteViews(context.packageName, R.layout.status_bar_expanded)
+*/
 
         // showing default album image
         smallView.setViewVisibility(R.id.status_bar_icon, View.VISIBLE)
         smallView.setViewVisibility(R.id.status_bar_album_art, View.GONE)
+/*
         bigView.setImageViewBitmap(R.id.status_bar_album_art, BitmapFactory.decodeResource(context.resources, R.drawable.star))
-        setListeners(bigView, smallView, context)
+*/
+        setListeners(smallView, context)
 
         // Build the content of the notification
         val nBuilder = getNotificationBuilder(context,
@@ -97,17 +103,24 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
 
         // Notification through notification manager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+/*
             nBuilder.setCustomBigContentView(bigView)
+*/
             nBuilder.setCustomContentView(smallView)
             notification = nBuilder.build()
         } else {
             notification = nBuilder.build()
             notification.contentView = smallView
+/*
             notification.bigContentView = bigView
+*/
         }
 
         // Notification through notification manager
+        notification.flags = Notification.FLAG_ONLY_ALERT_ONCE
+/*
         notification.flags = Notification.FLAG_ONGOING_EVENT
+*/
         notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, notification)
     }
 
@@ -118,29 +131,39 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
      * @param [smallView] remote view for regular content.
      * @param [context] application context for associate the notification with.
      */
-    private fun setListeners(bigView: RemoteViews, smallView: RemoteViews, context: Context) {
+    private fun setListeners(smallView: RemoteViews, context: Context) {
         Log.d("setListener", "en setlistener")
 
 
         val intentDelete = Intent(context, NotificationService::class.java)
         intentDelete.action = NOTIFY_DELETE
         val pendingIntentDelete = PendingIntent.getService(context, 0, intentDelete, PendingIntent.FLAG_UPDATE_CURRENT)
+/*
         bigView.setOnClickPendingIntent(R.id.status_bar_collapse, pendingIntentDelete)
+*/
         smallView.setOnClickPendingIntent(R.id.status_bar_collapse, pendingIntentDelete)
 
         val intentPlay = Intent(context, NotificationService::class.java)
         intentPlay.action = NOTIFY_PLAY
         val pendingIntentPlay = PendingIntent.getService(context, 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT)
+/*
         bigView.setOnClickPendingIntent(R.id.status_bar_play_expanded, pendingIntentPlay)
+*/
         smallView.setOnClickPendingIntent(R.id.status_bar_play, pendingIntentPlay)
 
+/*
         bigView.setTextViewText(R.id.status_bar_track_name, "Song Title")
+*/
         smallView.setTextViewText(R.id.status_bar_track_name, "Song Title")
 
+/*
         bigView.setTextViewText(R.id.status_bar_artist_name, "Artist Name")
+*/
         smallView.setTextViewText(R.id.status_bar_artist_name, "Artist Name")
 
+/*
         bigView.setTextViewText(R.id.status_bar_album_name, "Album Name")
+*/
         Log.d("setListener", "en setlistener")
 
     }
