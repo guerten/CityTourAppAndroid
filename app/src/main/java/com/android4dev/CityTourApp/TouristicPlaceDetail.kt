@@ -1,20 +1,27 @@
 package com.android4dev.CityTourApp
 
 import android.content.Context
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.view.MotionEventCompat
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import com.android4dev.CityTourApp.models.TouristicPlace
 import android.view.View
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_touristic_place_detail.*
 
 
 class TouristicPlaceDetail : AppCompatActivity() {
 
     private lateinit var touristicPlace: TouristicPlace
+
+    private val TAG = "Activity NOTIFICATION"
+
+    private var ng: NotificationGenerator? = null
+
+    private var serviceIntent: Intent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +54,29 @@ class TouristicPlaceDetail : AppCompatActivity() {
                 Log.d("ViewSwipe", "Right")
             }
         })
+    }
+
+
+    /**
+     * Handle all notification test buttons.
+     * @param [view] identify the button.
+     */
+    fun showNotification(view: View) {
+        if (null == ng) ng = NotificationGenerator()
+
+        when (view.id) {
+
+            R.id.btn_music_notification -> {
+                serviceIntent = Intent(applicationContext, NotificationService::class.java)
+                serviceIntent!!.putExtra("touristicPlace", touristicPlace)
+                serviceIntent!!.action = NOTIFY_INIT
+                startService(serviceIntent)
+                ng!!.showBigContentMusicPlayer(applicationContext)
+/*
+                Toast.makeText(this, "le clicaste al botón de sonar weeey", Toast.LENGTH_SHORT).show()
+*/
+            }
+        }
     }
 }
 
