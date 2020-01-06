@@ -72,9 +72,6 @@ class TouristicPlaceDetail : AppCompatActivity() {
                 serviceIntent!!.action = NOTIFY_INIT
                 startService(serviceIntent)
                 ng!!.showBigContentMusicPlayer(applicationContext)
-/*
-                Toast.makeText(this, "le clicaste al botón de sonar weeey", Toast.LENGTH_SHORT).show()
-*/
             }
         }
     }

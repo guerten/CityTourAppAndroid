@@ -10,41 +10,14 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Build
 import android.os.Build.VERSION_CODES.O
-import android.support.v4.app.NotificationManagerCompat
-import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 
-/*
-const val NOTIFY_PREVIOUS = "com.android4dev.CityTourApp.previous"
-*/
 const val NOTIFY_DELETE = "com.android4dev.CityTourApp.delete"
 const val NOTIFY_INIT = "com.android4dev.CityTourApp.init"
-const val NOTIFY_PAUSE = "com.android4dev.CityTourApp.pause"
 const val NOTIFY_PLAY = "com.android4dev.CityTourApp.play"
-/*
-const val NOTIFY_NEXT = "com.android4dev.CityTourApp.next"
-*/
-const val STARTFOREGROUND_ACTION = "com.android4dev.CityTourApp.startforeground"
 const val NOTIFICATION_ID_BIG_CONTENT = 99
 
-/*
-const val NOTIFICATION_ID_REGULAR = 9
-const val NOTIFICATION_ID_BIG_TEXT_CONTENT = 666
-const val NOTIFICATION_ID_BIG_PICTURE_CONTENT = 777
-const val NOTIFICATION_ID_BIG_INBOX_CONTENT = 999
-*/
-
-/**
- * Class to generate the notification to open the Activity.
- * @property [notificationIntentClass] The component class that is to be used for the notification intent.
- *           The default class, for this example, is [NotificationActivity].
- * @see [https://developer.android.com/guide/topics/ui/notifiers/notifications.html]
- * @see [http://www.vogella.com/tutorials/AndroidNotifications/article.html]
- * @see [https://www.youtube.com/watch?v=VouATjZdIWo]
- * @see [https://www.youtube.com/watch?v=3FJNOrfBQEA]
- * @see [https://www.youtube.com/watch?v=wMS-m29zH20]
- */
 class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity::class.java) {
 
     var notificationManager: NotificationManager? = null
@@ -53,9 +26,7 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
     private val description = "Test notification"
     lateinit var contexto: Context
     lateinit var smallView: RemoteViews
-/*
-    lateinit var bigView: RemoteViews
-*/
+
     lateinit var notification: Notification
 
     companion object {
@@ -82,16 +53,11 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
 
         // Using RemoteViews to bind custom layouts into Notification
         smallView = RemoteViews(context.packageName, R.layout.status_bar)
-/*
-        bigView = RemoteViews(context.packageName, R.layout.status_bar_expanded)
-*/
 
         // showing default album image
         smallView.setViewVisibility(R.id.status_bar_icon, View.VISIBLE)
         smallView.setViewVisibility(R.id.status_bar_album_art, View.GONE)
-/*
-        bigView.setImageViewBitmap(R.id.status_bar_album_art, BitmapFactory.decodeResource(context.resources, R.drawable.star))
-*/
+
         setListeners(smallView, context)
 
         // Build the content of the notification
@@ -103,83 +69,32 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
 
         // Notification through notification manager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-/*
-            nBuilder.setCustomBigContentView(bigView)
-*/
             nBuilder.setCustomContentView(smallView)
             notification = nBuilder.build()
         } else {
             notification = nBuilder.build()
             notification.contentView = smallView
-/*
-            notification.bigContentView = bigView
-*/
         }
 
         // Notification through notification manager
         notification.flags = Notification.FLAG_ONLY_ALERT_ONCE
-/*
-        notification.flags = Notification.FLAG_ONGOING_EVENT
-*/
         notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, notification)
     }
 
 
-    /**
-     * Handle the control buttons.
-     * @param [bigView] remote view for big content.
-     * @param [smallView] remote view for regular content.
-     * @param [context] application context for associate the notification with.
-     */
     private fun setListeners(smallView: RemoteViews, context: Context) {
-        Log.d("setListener", "en setlistener")
-
-
         val intentDelete = Intent(context, NotificationService::class.java)
         intentDelete.action = NOTIFY_DELETE
         val pendingIntentDelete = PendingIntent.getService(context, 0, intentDelete, PendingIntent.FLAG_UPDATE_CURRENT)
-/*
-        bigView.setOnClickPendingIntent(R.id.status_bar_collapse, pendingIntentDelete)
-*/
         smallView.setOnClickPendingIntent(R.id.status_bar_collapse, pendingIntentDelete)
-
         val intentPlay = Intent(context, NotificationService::class.java)
         intentPlay.action = NOTIFY_PLAY
         val pendingIntentPlay = PendingIntent.getService(context, 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT)
-/*
-        bigView.setOnClickPendingIntent(R.id.status_bar_play_expanded, pendingIntentPlay)
-*/
         smallView.setOnClickPendingIntent(R.id.status_bar_play, pendingIntentPlay)
-
-/*
-        bigView.setTextViewText(R.id.status_bar_track_name, "Song Title")
-*/
         smallView.setTextViewText(R.id.status_bar_track_name, "Song Title")
-
-/*
-        bigView.setTextViewText(R.id.status_bar_artist_name, "Artist Name")
-*/
         smallView.setTextViewText(R.id.status_bar_artist_name, "Artist Name")
-
-/*
-        bigView.setTextViewText(R.id.status_bar_album_name, "Album Name")
-*/
-        Log.d("setListener", "en setlistener")
-
     }
 
-    /**
-     * Initialize the notification manager and channel Id.
-     * The notification builder has the basic initialization:
-     *     - AutoCancel=true
-     *     - LargeIcon = SmallIcon
-     * @param [context] application context for associate the notification with.
-     * @param [notificationTitle] notification title.
-     * @param [notificationText] notification text.
-     * @param [notificationIconId] notification icon id from application resource.
-     * @param [notificationTicker] notification ticker text for accessibility.
-     * @return the PendingIntent to be used on this notification.
-     */
     private fun getNotificationBuilder(context: Context,
                                        notificationTitle: String,
                                        notificationText: String,
@@ -219,18 +134,6 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
         return builder
     }
 
-    /**
-     * Retorna a Intent que será utilizada nesta notificação.
-     * Para poder recompor a estruturas das activities, é necessário declarar o parentesco no manifesto
-     * e incluir os atributos:
-     *          + launchMode="singleTask"
-     *          + taskAffinity=""
-     *          + excludeFromRecents="true"
-     * da NotificationActivity.
-     * @param [context] application context for associate the notification with.
-     * @return the activity associated to the notification.
-     * @see [https://developer.android.com/guide/topics/ui/notifiers/notifications.html#NotificationResponse]
-     */
     private fun getPendingIntent(context: Context): PendingIntent {
         val resultIntent = Intent(context, notificationIntentClass)
         resultIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK

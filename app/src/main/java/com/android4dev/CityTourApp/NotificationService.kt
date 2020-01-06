@@ -22,7 +22,7 @@ import java.io.FileInputStream
  */
 class NotificationService : Service() {
 
-    var mp: MediaPlayer? = null
+    private var mp: MediaPlayer? = null
 
     private lateinit var touristicPlace: TouristicPlace
 
@@ -42,8 +42,6 @@ class NotificationService : Service() {
      *         START_CONTINUATION_MASK bits.
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("sef", intent!!.action.toString())
-
         val action = intent!!.action
         when (action) {
             NOTIFY_PLAY -> {
@@ -93,19 +91,16 @@ class NotificationService : Service() {
             if (mp!!.isPlaying) {
                 NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play)
                 NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
-
                 mp!!.pause()
             } else {
                 NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause)
                 NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
-
                 mp!!.start()
             }
         }
     }
 
     fun removeAudio() {
-
         if (mp != null) {
             if (mp!!.isPlaying) {
                 mp!!.stop()
@@ -114,7 +109,6 @@ class NotificationService : Service() {
                 mp = null
             }
         }
-
         Toast.makeText(applicationContext, "Handle the DELETE button", Toast.LENGTH_LONG).show()
         stopForeground(true)
         stopSelf()
