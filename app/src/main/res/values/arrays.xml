@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="typesOfPlaces">
+        <item>Nature</item>
+        <item>Historic</item>
+        <item>Business</item>
+    </string-array>
+
+    <string-array name="typesOfPlacesValues">
+        <item>Nature</item>
+        <item>Historic</item>
+        <item>Business</item>
+    </string-array>
+</resources>
