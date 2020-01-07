@@ -1,11 +1,9 @@
 package com.android4dev.CityTourApp.models
 
-import com.google.android.gms.maps.model.LatLng
 import java.io.Serializable
 
-class PoligonArea (val array: Array<Coordinates>) : Serializable
-
 class Coordinates (val latitude: Double, val longitude: Double) : Serializable
+enum class TP_Type { NATURE, HISTORIC }
 
 class TouristicPlace (
     val title: String,
@@ -14,8 +12,7 @@ class TouristicPlace (
     var coordinates: Coordinates,
     var description: String,
     var score: Double,
+    var audioGuideUrl: String,
+    val type: TP_Type,
     var distance: Double? = null
-    /*
-        val poligonArea: PoligonArea,
-*/
 ) : Serializable

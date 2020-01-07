@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:key="discover_category"
+        android:title="WHAT DISCOVER">
+
+        <MultiSelectListPreference
+            android:dialogTitle="Select types of places your are interested"
+            android:key="places_types"
+            android:title="Types of touristic places"
+            android:summary="Select type of touristic places"
+            android:entries="@array/typesOfPlaces"
+            android:entryValues="@array/typesOfPlacesValues"
+            android:defaultValue="@array/typesOfPlacesValues"/>
+        <SwitchPreference
+            android:key="enable_autoplay"
+            android:defaultValue="true"
+            android:title="Autoplay"
+            android:summary="Reproduce automatically the description of a place discovered" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="NOTIFICATIONS">
+
+        <SwitchPreference
+            android:key="enable_notification"
+            android:title="Push notifications"
+            android:defaultValue="true"
+            android:summary="Receive notifications when a place is discovered" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

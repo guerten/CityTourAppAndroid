@@ -11,19 +11,33 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".TouristicPlaceDetail"></activity>
 
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
 
-        <meta-data android:name="com.google.android.gms.version" />
+        <meta-data
+            android:name="com.google.android.gms.version" />/>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity
-            android:name=".MainActivity"
+        <service android:name="com.android4dev.CityTourApp.NotificationService" />
+
+        <service
+            android:name=".MyBackgroundLocationService"
+            android:enabled="true"
+            android:exported="false"></service>
+
+        <activity android:name=".SettingsActivity" />
+
+        <receiver android:name=".LocationService" />
+
+        <activity android:name=".TouristicPlaceDetail"
+            android:parentActivityName=".MainActivity"></activity>
+
+        <activity android:name="com.android4dev.CityTourApp.MainActivity"
             android:label="@string/title_activity_maps">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,6 +45,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
