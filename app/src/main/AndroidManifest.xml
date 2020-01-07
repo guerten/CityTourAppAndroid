@@ -34,7 +34,8 @@
 
         <receiver android:name=".LocationService" />
 
-        <activity android:name=".TouristicPlaceDetail"></activity>
+        <activity android:name=".TouristicPlaceDetail"
+            android:parentActivityName=".MainActivity"></activity>
 
         <activity android:name="com.android4dev.CityTourApp.MainActivity"
             android:label="@string/title_activity_maps">

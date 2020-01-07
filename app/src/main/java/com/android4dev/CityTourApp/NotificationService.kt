@@ -14,6 +14,11 @@ import android.widget.RemoteViews
 import android.widget.Toast
 import com.android4dev.CityTourApp.models.TouristicPlace
 import java.io.FileInputStream
+import android.media.MediaPlayer.OnCompletionListener
+import android.support.v4.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 /**
  * In music player, playback of songs has to be done within a service which runs in background
@@ -30,6 +35,12 @@ class NotificationService : Service() {
         return null
     }
 
+    override fun onDestroy() {
+        Log.d("sefs", "onDestroy")
+        removeAudio()
+        super.onDestroy()
+    }
+
     /**
      * Receive the big content actions in background.
      * @param [intent] The Intent supplied to startService, as given.
@@ -42,65 +53,81 @@ class NotificationService : Service() {
      *         START_CONTINUATION_MASK bits.
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val action = intent!!.action
-        when (action) {
-            NOTIFY_PLAY -> {
-                playAudio()
-            }
-            NOTIFY_DELETE -> {
-                removeAudio()
-            }
-            NOTIFY_INIT -> {
-                initAudio(intent)
+        if (intent == null) {
+            removeAudio()
+        }
+        else {
+            val action = intent!!.action
+            when (action) {
+                NOTIFY_PLAY -> {
+                    playAudio()
+                }
+                NOTIFY_DELETE -> {
+                    removeAudio()
+                }
+                NOTIFY_INIT -> {
+                    initAudio(intent)
+                }
+                else ->
+                    removeAudio()
+
             }
         }
         return START_STICKY
     }
 
 
-    fun initAudio(intent: Intent) {
+    private fun initAudio(intent: Intent) {
         touristicPlace = intent.getSerializableExtra("touristicPlace") as TouristicPlace
-        if (mp != null) {
-            if (mp!!.isPlaying) {
-                mp!!.stop()
-                mp!!.reset()
-                mp!!.release()
-                mp = null
+        if (touristicPlaceExists()) {
+            if (mp != null) {
+                if (mp!!.isPlaying) {
+                    mp!!.stop()
+                    mp!!.reset()
+                    mp!!.release()
+                    mp = null
+                }
             }
-        }
-        mp = MediaPlayer()
-        val myUrl = touristicPlace.audioGuideUrl
-        mp!!.apply {
-            setDataSource(myUrl)
-            prepare()
-            start()
-        }
-    }
-
-
-    fun playAudio() {
-        if (mp == null) {
             mp = MediaPlayer()
+            mp!!.setOnCompletionListener(OnCompletionListener {
+                /*Tambien se podría poner el changePlay...*/
+                removeAudio()
+            })
             val myUrl = touristicPlace.audioGuideUrl
+
+            // TODO : Por ahora si estuviera sonando un audio y sale que te acercas a otro lado, entonces directamente se va a cambiar a este otro audio a sonar sin avisar ni nada!
             mp!!.apply {
                 setDataSource(myUrl)
                 prepare()
                 start()
             }
-        } else {
-            if (mp!!.isPlaying) {
-                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play)
-                NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
-                mp!!.pause()
+        }
+    }
+
+
+    private fun playAudio() {
+        if (touristicPlaceExists()) {
+            if (mp == null) {
+                mp = MediaPlayer()
+                val myUrl = touristicPlace.audioGuideUrl
+                mp!!.apply {
+                    setDataSource(myUrl)
+                    prepare()
+                    start()
+                }
             } else {
-                NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause)
-                NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
-                mp!!.start()
+                if (mp!!.isPlaying) {
+                    changePauseToPlayButton()
+                    mp!!.pause()
+                } else {
+                    changePlayToPauseButton()
+                    mp!!.start()
+                }
             }
         }
     }
 
-    fun removeAudio() {
+    private fun removeAudio() {
         if (mp != null) {
             if (mp!!.isPlaying) {
                 mp!!.stop()
@@ -115,5 +142,18 @@ class NotificationService : Service() {
         // Terminate the notification
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(NOTIFICATION_ID_BIG_CONTENT)
+    }
+
+    private fun changePlayToPauseButton () {
+        NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause)
+        NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
+    }
+
+    private fun changePauseToPlayButton () {
+        NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play)
+        NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
+    }
+    private fun touristicPlaceExists () : Boolean {
+        return touristicPlace!=null
     }
 }

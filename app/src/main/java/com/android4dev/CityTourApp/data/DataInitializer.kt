@@ -23,11 +23,13 @@ class DataInitializer {
 /*
         touristicPlacesList.add(TouristicPlace("Grancasa", "Esto si es lo mejor del puto mundo... y alladito de casa", "grancasa", Coordinates(41.6697002,-0.891558),"La descripción de Grancasita weey", 9.9))
 */
+/*
         touristicPlacesList.add(TouristicPlace("Goya2", "subtitulo de goyita mi preciosa joya","goya", Coordinates(41.6504685,-0.8703448),"La descripción de Goya", 9.2, "https://www.audioguias-bluehertz.es/audioguia_zaragoza/esp/goya.mp3", TP_Type.NATURE))
         touristicPlacesList.add(TouristicPlace("La lonja2", "subtitulo de la lonja","la_lonja", Coordinates(41.6514685,-0.8766448),"La descripción de la lonjita.,.. vesas oiesjhofg sofihsoi haoiehoish faios hfis an ahsiou", 8.3, "https://www.audioguias-bluehertz.es/audioguia_zaragoza/esp/lonja_de_mercaderes.mp3", TP_Type.NATURE))
         touristicPlacesList.add(TouristicPlace("El pilar2","subtitulo de el pilar la pilarica maña que baila y baila sin paraaaar" ,"el_pilar",  Coordinates(41.6562917,-0.8804382),"no description el siguiente", 6.6, "https://www.audioguias-bluehertz.es/audioguia_zaragoza/esp/plaza_del_pilar.mp3", TP_Type.NATURE))
         touristicPlacesList.add(TouristicPlace("La seo2","Mejor monumento 2017 por la revista mihuevo","laseo", Coordinates(41.6554685,-0.8773448),"", 9.2, "https://www.audioguias-bluehertz.es/audioguia_zaragoza/esp/seo.mp3", TP_Type.NATURE))
         touristicPlacesList.add(TouristicPlace("Aljafería2", "aljafería mañaaa", "aljaferia", Coordinates(41.6754685,-0.8473448),"oisejhfgoiesahf hudas huiahas h kh sdfSAF OHDUIa 1235 32i5 hsdn", 8.3, "https://www.audioguias-bluehertz.es/audioguia_zaragoza/esp/aljaferia.mp3", TP_Type.NATURE))
+*/
 /*
         touristicPlacesList.add(TouristicPlace("Catedral del salvador2", "Lo dicho ni su padre","catedral_del_salvador", Coordinates(41.6574685,-0.8773448),"sioejfoise", 9.0))
 */

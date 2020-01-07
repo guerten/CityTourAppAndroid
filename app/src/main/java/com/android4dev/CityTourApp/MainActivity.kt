@@ -22,6 +22,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
+import android.util.Log
 import android.widget.Toast
 import com.android4dev.CityTourApp.data.DataInitializer
 import kotlinx.android.synthetic.main.fragment_map.*
@@ -45,11 +46,15 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private val touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
+    val touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
     private var lastPositionMarker: Marker? = null
+/*
+    private var locationChangedSinceLastPrint: Boolean = false
+*/
 
+    var currentVisitingTouristicPlace: TouristicPlace? = null
     companion object {
-        var instance: MainActivity? = null
+        var instance: MainActivity = MainActivity()
 
         fun getMainInstance(): MainActivity {
             return instance!!
@@ -141,6 +146,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     override fun onResume() {
+        Log.d("tag", "en el onresume del main activity")
         overridePendingTransition(R.anim.slide_back_in, R.anim.slide_back_out)
         super.onResume()
     }
@@ -196,16 +202,17 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         })
     }
 
-    private fun onLocationChanged() {
-        touristicPlacesList.clear()
+    fun onLocationChanged(newLocation: Location) {
 
         for ((index,touristicPlace) in touristicPlacesList.withIndex()) {
-            var distanceToTouristicPlace = distance(currentLocation.latitude,currentLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
+            var distanceToTouristicPlace = distance(newLocation.latitude,newLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
             touristicPlacesList[index].distance = distanceToTouristicPlace
         }
         touristicPlacesList.sortBy { it.distance }
 
+/*
         touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
+*/
     }
 
     private fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Double {

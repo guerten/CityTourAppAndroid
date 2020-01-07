@@ -71,7 +71,7 @@ class TouristicPlaceDetail : AppCompatActivity() {
                 serviceIntent!!.putExtra("touristicPlace", touristicPlace)
                 serviceIntent!!.action = NOTIFY_INIT
                 startService(serviceIntent)
-                ng!!.showBigContentMusicPlayer(applicationContext)
+                ng!!.showBigContentMusicPlayer(applicationContext, touristicPlace)
             }
         }
     }

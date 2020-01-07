@@ -12,33 +12,34 @@ import android.os.Build
 import android.os.Build.VERSION_CODES.O
 import android.view.View
 import android.widget.RemoteViews
+import com.android4dev.CityTourApp.models.TouristicPlace
+import android.content.IntentFilter
+
+
 
 const val NOTIFY_DELETE = "com.android4dev.CityTourApp.delete"
 const val NOTIFY_INIT = "com.android4dev.CityTourApp.init"
 const val NOTIFY_PLAY = "com.android4dev.CityTourApp.play"
 const val NOTIFICATION_ID_BIG_CONTENT = 99
 
-class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity::class.java) {
+class NotificationGenerator {
 
     var notificationManager: NotificationManager? = null
     private var notificationChannel: NotificationChannel? = null
     private val channelId = "com.android4dev.CityTourApp"
     private val description = "Test notification"
-    lateinit var contexto: Context
+    private lateinit var touristicPlace: TouristicPlace
+    lateinit var context: Context
     lateinit var smallView: RemoteViews
 
     lateinit var notification: Notification
 
     companion object {
-        private lateinit var instance: NotificationGenerator
+        private var instance = NotificationGenerator ()
 
         val managerInstance: NotificationGenerator
             get() {
-                if (instance == null) {
-                    instance = NotificationGenerator()
-                }
-
-                return instance
+                return instance!!
             }
     }
 
@@ -47,9 +48,10 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
      * @param [context] application context for associate the notification with.
      * @see [http://www.tutorialsface.com/2015/08/android-custom-notification-tutorial/]
      */
-    fun showBigContentMusicPlayer(context: Context) {
+    fun showBigContentMusicPlayer(contextAux: Context,touristicPlaceAux: TouristicPlace) {
         instance = this
-        contexto = context
+        context = contextAux
+        touristicPlace = touristicPlaceAux
 
         // Using RemoteViews to bind custom layouts into Notification
         smallView = RemoteViews(context.packageName, R.layout.status_bar)
@@ -78,6 +80,7 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
 
         // Notification through notification manager
         notification.flags = Notification.FLAG_ONLY_ALERT_ONCE
+
         notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, notification)
     }
 
@@ -91,8 +94,8 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
         intentPlay.action = NOTIFY_PLAY
         val pendingIntentPlay = PendingIntent.getService(context, 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT)
         smallView.setOnClickPendingIntent(R.id.status_bar_play, pendingIntentPlay)
-        smallView.setTextViewText(R.id.status_bar_track_name, "Song Title")
-        smallView.setTextViewText(R.id.status_bar_artist_name, "Artist Name")
+        smallView.setTextViewText(R.id.status_bar_track_name, touristicPlace.title)
+        smallView.setTextViewText(R.id.status_bar_artist_name, touristicPlace.subtitle)
     }
 
     private fun getNotificationBuilder(context: Context,
@@ -117,6 +120,9 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
         } else {
             builder = Notification.Builder(context)
         }
+        var intentDelete = Intent(context, NotificationService::class.java)
+        intentDelete.action = NOTIFY_DELETE
+        val pendingIntentDelete = PendingIntent.getService(context, 0, intentDelete, PendingIntent.FLAG_UPDATE_CURRENT)
 
         // Build the content of the notification
         builder.setContentTitle(notificationTitle)
@@ -126,6 +132,7 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setTicker(notificationTicker)
+                .setDeleteIntent(pendingIntentDelete)
         // Restricts the notification information when the screen is blocked.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             builder.setVisibility(Notification.VISIBILITY_PRIVATE)
@@ -135,8 +142,15 @@ class NotificationGenerator(var notificationIntentClass: Class<*> = MainActivity
     }
 
     private fun getPendingIntent(context: Context): PendingIntent {
+
+        var notificationIntentClass: Class<*> = TouristicPlaceDetail::class.java
         val resultIntent = Intent(context, notificationIntentClass)
+        resultIntent.putExtra("tpItem",touristicPlace)
+
+        // The following flags are used so when we go back from the new/clear activity we don't get back to the first activity or something like that
+/*
         resultIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+*/
         val resultPendingIntent = PendingIntent.getActivity(context, 0,
                 resultIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
