@@ -1,6 +1,5 @@
 package com.android4dev.CityTourApp
 
-import android.content.Intent
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
@@ -33,7 +32,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
 
