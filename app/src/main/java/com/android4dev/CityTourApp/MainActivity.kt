@@ -27,6 +27,7 @@ import kotlinx.android.synthetic.main.fragment_map.*
 import kotlin.collections.ArrayList
 import com.android4dev.CityTourApp.models.TP_Type
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.*
 import com.google.gson.Gson
 import com.karumi.dexter.Dexter
@@ -123,7 +124,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         startService(intent)
     }
 
-    private fun stopLocationService(view: View) {
+    private fun stopLocationService() {
         val intent = Intent(this, MyBackgroundLocationService::class.java)
         stopService(intent)
     }
@@ -163,7 +164,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         mMap = googleMap
 
         mMap.isMyLocationEnabled = true
-
         /*mMap.uiSettings.isScrollGesturesEnabled = false
         mMap.uiSettings.isZoomGesturesEnabled = true*/
 
@@ -183,6 +183,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
+
     }
 
     private fun initBottomSheetView() {
@@ -210,6 +211,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
     override fun onLocationChanged(newLocation: Location) {
         shouldUpdateView = true
         currentKnownLocation = LatLng(newLocation.latitude,newLocation.longitude)
+        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(currentKnownLocation, 18f)
+        mMap.animateCamera(cameraUpdate)
         orderTouristicPlacesList (currentKnownLocation)
         if (activityActive){
             touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
@@ -240,11 +243,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
 
     /* Obtain the distance between 2 given points by their latitude and longitude*/
     private fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Float {
-        var loc1  = Location("")
+        val loc1  = Location("")
         loc1.latitude = fromLat
         loc1.longitude = fromLon
 
-        var loc2  = Location("")
+        val loc2  = Location("")
         loc2.latitude = toLat
         loc2.longitude = toLon
 
@@ -257,10 +260,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
     /* PREFERENCES: SAVE AND GET LAST KNOWN LOCATION */
 
     private fun saveCurrentLocationToPrefs() {
-        var gsonCurrentKnownLocation = Gson()
-        var jsonCurrentKnownLocation = gsonCurrentKnownLocation.toJson(currentKnownLocation)
+        val gsonCurrentKnownLocation = Gson()
+        val jsonCurrentKnownLocation = gsonCurrentKnownLocation.toJson(currentKnownLocation)
 
-        var sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         with(sharedPref.edit()){
             putString(LAST_KNOWN_LOCATION_PREF, jsonCurrentKnownLocation)
             commit()
@@ -268,9 +271,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
     }
 
     private fun getLastLocationFromPrefs() {
-        var gsonCurrentKnownLocation = Gson()
+        val gsonCurrentKnownLocation = Gson()
 
-        var jsonLastKnownLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(LAST_KNOWN_LOCATION_PREF, null)
+        val jsonLastKnownLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(LAST_KNOWN_LOCATION_PREF, null)
         if (jsonLastKnownLocation != null) {
             currentKnownLocation = gsonCurrentKnownLocation.fromJson(jsonLastKnownLocation, LatLng::class.java)
         }

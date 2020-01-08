@@ -38,7 +38,7 @@ class MyBackgroundLocationService : Service() {
             val mainActivityAux = MainActivity.getMainInstance()
             mainActivityAux.onLocationChanged(newLocation)
 
-            var sharedPref = getSharedPref()
+            val sharedPref = getSharedPref()
 
 
 
@@ -48,7 +48,7 @@ class MyBackgroundLocationService : Service() {
 
 
             /* Check whether the user has disabled push notifications */
-            var pushNotificationPref = getBooleanPref(PUSH_NOTIFICATION_SETTING, sharedPref)
+            val pushNotificationPref = getBooleanPref(PUSH_NOTIFICATION_SETTING, sharedPref)
             if (pushNotificationPref){
 
                 /* Check if any touristic place is nearer than x metres */
@@ -62,7 +62,7 @@ class MyBackgroundLocationService : Service() {
                         savePref (TPVISITING_PREF, currentVisitingTouristicPlace!!, sharedPref)
 
                         val serviceIntent = Intent(applicationContext, NotificationService::class.java)
-                        var startNotificationWithAudioPlaying = getBooleanPref(AUTOPLAY_SETTING, sharedPref)
+                        val startNotificationWithAudioPlaying = getBooleanPref(AUTOPLAY_SETTING, sharedPref)
                         if (startNotificationWithAudioPlaying){
                             serviceIntent.action = NOTIFY_INIT
                         }
@@ -122,9 +122,9 @@ class MyBackgroundLocationService : Service() {
         return PreferenceManager.getDefaultSharedPreferences(this)
     }
 
-    private fun savePref(key:String, objectToSave: Any, sharedPref: SharedPreferences) {
-        var gsonObject = Gson()
-        var jsonObject = gsonObject.toJson(objectToSave)
+    private fun savePref(key: String, objectToSave: Any, sharedPref: SharedPreferences) {
+        val gsonObject = Gson()
+        val jsonObject = gsonObject.toJson(objectToSave)
         with(sharedPref.edit()){
             putString(key, jsonObject)
             commit()
@@ -132,8 +132,8 @@ class MyBackgroundLocationService : Service() {
     }
 
     private fun getCurrentVisitingTouristicPlacePref(key: String, sharedPref: SharedPreferences) : TouristicPlace? {
-        var gsonCurrentKnownLocation = Gson()
-        var jsonTouristicPlaceAux = sharedPref.getString(key, null)
+        val gsonCurrentKnownLocation = Gson()
+        val jsonTouristicPlaceAux = sharedPref.getString(key, null)
         if (jsonTouristicPlaceAux != null){
             return gsonCurrentKnownLocation.fromJson(jsonTouristicPlaceAux, TouristicPlace::class.java)
         }
