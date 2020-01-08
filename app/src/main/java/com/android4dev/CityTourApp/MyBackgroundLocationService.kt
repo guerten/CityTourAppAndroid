@@ -33,23 +33,19 @@ class MyBackgroundLocationService : Service() {
 
             val newLocation: Location = locationResult.locations.last()
 
-            Log.d(TAG, newLocation.latitude.toString())
-
             // ordeno los nuevos datos con respecto a mi ubicación actual modificada
-            var mainActivityAux = MainActivity.getMainInstance()
+            val mainActivityAux = MainActivity.getMainInstance()
             mainActivityAux.onLocationChanged(newLocation)
 
-            Log.d(TAG, newLocation.latitude.toString())
-
             /* compruebo si tengo que hacer reproducir alguna audioguía o bien no hacer nada */
-            var firstTouristicPlaceInList = mainActivityAux.touristicPlacesList[0]
+            val firstTouristicPlaceInList = mainActivityAux.touristicPlacesList[0]
             if (firstTouristicPlaceInList.distance!! <= 50.0) {
                 if (firstTouristicPlaceInList != currentVisitingTouristicPlace) {
                     currentVisitingTouristicPlace = firstTouristicPlaceInList
 
-                    var serviceIntent: Intent = Intent(applicationContext, NotificationService::class.java)
-                    serviceIntent!!.putExtra("touristicPlace", currentVisitingTouristicPlace)
-                    serviceIntent!!.action = NOTIFY_INIT
+                    val serviceIntent = Intent(applicationContext, NotificationService::class.java)
+                    serviceIntent.putExtra("touristicPlace", currentVisitingTouristicPlace)
+                    serviceIntent.action = NOTIFY_INIT
                     startService(serviceIntent)
                     NotificationGenerator.managerInstance.showBigContentMusicPlayer(applicationContext, currentVisitingTouristicPlace!!)
                 }

@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
@@ -37,10 +38,11 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import kotlinx.android.synthetic.main.fragment_map.*
+import kotlin.math.*
 
-class MainActivity : AppCompatActivity() , OnMapReadyCallback {
+class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener {
 
-    var currentLocation: LatLng = LatLng(42.0, 2.0)
+    private var currentLocation: LatLng = LatLng(42.0, 2.0)
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
     private lateinit var locationRequest: LocationRequest
@@ -57,7 +59,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         var instance: MainActivity = MainActivity()
 
         fun getMainInstance(): MainActivity {
-            return instance!!
+            return instance
         }
     }
 
@@ -75,20 +77,18 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
-        initBottomSheetView()
-
         instance = this
 
         Dexter.withActivity(this)
                 .withPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
                 .withListener(object: PermissionListener {
                     override fun onPermissionGranted(response: PermissionGrantedResponse?) {
-                        updateLocation()
+                        val mapFragment = supportFragmentManager
+                                .findFragmentById(R.id.map) as SupportMapFragment
+                        mapFragment.getMapAsync(instance)
+                        initBottomSheetView()
                         startLocationService()
+                        updateLocation()
                     }
 
                     override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest?, token: PermissionToken?) {}
@@ -181,10 +181,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
         bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
 
-        var mDividerItemDecoration = DividerItemDecoration(touristicPlacesRecyclerView.context, DividerItemDecoration.VERTICAL)
+        val mDividerItemDecoration = DividerItemDecoration(touristicPlacesRecyclerView.context, DividerItemDecoration.VERTICAL)
         touristicPlacesRecyclerView.addItemDecoration(mDividerItemDecoration)
         for ((index,touristicPlace) in touristicPlacesList.withIndex()) {
-            var distanceToTouristicPlace = distance(currentLocation.latitude,currentLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
+            val distanceToTouristicPlace = distance(currentLocation.latitude,currentLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
             touristicPlacesList[index].distance = distanceToTouristicPlace
         }
         touristicPlacesList.sortBy { it.distance }
@@ -194,7 +194,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
 
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                var mapLayoutParams = CoordinatorLayout.LayoutParams(mainActivityCoordinator.width, bottomSheet.top)
+                val mapLayoutParams = CoordinatorLayout.LayoutParams(mainActivityCoordinator.width, bottomSheet.top)
                 fragmentLayoutMap.layoutParams = mapLayoutParams
             }
 
@@ -202,10 +202,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         })
     }
 
-    fun onLocationChanged(newLocation: Location) {
+    override fun onLocationChanged(newLocation: Location) {
 
         for ((index,touristicPlace) in touristicPlacesList.withIndex()) {
-            var distanceToTouristicPlace = distance(newLocation.latitude,newLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
+            val distanceToTouristicPlace = distance(newLocation.latitude,newLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
             touristicPlacesList[index].distance = distanceToTouristicPlace
         }
         touristicPlacesList.sortBy { it.distance }
@@ -215,13 +215,24 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 */
     }
 
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        Log.v("Loc Update", "\nProvider status changed: $provider, status=$status, extras=$extras");
+
+    }
+
+    override fun onProviderEnabled(provider: String?) {
+        Log.v("Loc Update", "\nProvider enabled: $provider");
+    }
+
+    override fun onProviderDisabled(provider: String?) {
+        Log.v("Loc Update", "\nProvider disabled: $provider");
+    }
+
     private fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Double {
         val radius = 6378137.0   // approximate Earth radius, *in meters*
         val deltaLat = toLat - fromLat
         val deltaLon = toLon - fromLon
-        val angle = (2 * Math.asin(Math.sqrt(
-                Math.pow(Math.sin(deltaLat / 2), 2.0) + Math.cos(fromLat) * Math.cos(toLat) *
-                        Math.pow(Math.sin(deltaLon / 2), 2.0))))
+        val angle = (2 * asin(sqrt(sin(deltaLat / 2).pow(2.0) + cos(fromLat) * cos(toLat) * sin(deltaLon / 2).pow(2.0))))
         return radius * angle
     }
 }
