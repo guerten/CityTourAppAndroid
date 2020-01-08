@@ -6,18 +6,15 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
 import android.support.design.widget.CoordinatorLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_bottom_sheet.*
 import com.android4dev.CityTourApp.models.TouristicPlace
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -31,18 +28,16 @@ import kotlin.collections.ArrayList
 import com.android4dev.CityTourApp.models.TP_Type
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.*
+import com.google.gson.Gson
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
-import kotlinx.android.synthetic.main.fragment_map.*
-import kotlin.math.*
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener {
 
-    private var currentLocation: LatLng = LatLng(42.0, 2.0)
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
     private lateinit var locationRequest: LocationRequest
@@ -50,11 +45,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
     private lateinit var locationCallback: LocationCallback
     val touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
     private var lastPositionMarker: Marker? = null
-/*
-    private var locationChangedSinceLastPrint: Boolean = false
-*/
+    private var shouldUpdateView: Boolean = true
+    private var currentKnownLocation: LatLng = LatLng(40.416775,-3.703790)
+    var activityActive : Boolean = false
+    var LAST_KNOWN_LOCATION_PREF : String = "last_known_location_pref"
 
-    var currentVisitingTouristicPlace: TouristicPlace? = null
     companion object {
         var instance: MainActivity = MainActivity()
 
@@ -63,19 +58,33 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         }
     }
 
-    private fun startLocationService() {
-        val intent = Intent(this, MyBackgroundLocationService::class.java)
-        startService(intent)
+    override fun onStart() {
+        activityActive = true
+        super.onStart()
     }
 
-    private fun stopLocationService(view: View) {
-        val intent = Intent(this, MyBackgroundLocationService::class.java)
-        stopService(intent)
+    override fun onResume() {
+
+        /* If a new location has come, then we need to update the recycleView UI*/
+        if (shouldUpdateView){
+            touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
+            shouldUpdateView = false
+        }
+        overridePendingTransition(R.anim.slide_back_in, R.anim.slide_back_out)
+        super.onResume()
+    }
+
+    override fun onStop() {
+        activityActive = false
+        saveCurrentLocationToPrefs ()
+        super.onStop()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        getLastLocationFromPrefs()
 
         instance = this
 
@@ -109,6 +118,16 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         }
     }
 
+    private fun startLocationService() {
+        val intent = Intent(this, MyBackgroundLocationService::class.java)
+        startService(intent)
+    }
+
+    private fun stopLocationService(view: View) {
+        val intent = Intent(this, MyBackgroundLocationService::class.java)
+        stopService(intent)
+    }
+
     private fun getPendingIntent(): PendingIntent? {
         val intent = Intent(this@MainActivity, LocationService::class.java)
         intent.action = LocationService.ACTION_PROCESS_UPDATE
@@ -139,17 +158,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         locationRequest.smallestDisplacement = 10f
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.my_menu, menu)
-        return true
-    }
-
-    override fun onResume() {
-        Log.d("tag", "en el onresume del main activity")
-        overridePendingTransition(R.anim.slide_back_in, R.anim.slide_back_out)
-        super.onResume()
-    }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -183,11 +191,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
 
         val mDividerItemDecoration = DividerItemDecoration(touristicPlacesRecyclerView.context, DividerItemDecoration.VERTICAL)
         touristicPlacesRecyclerView.addItemDecoration(mDividerItemDecoration)
-        for ((index,touristicPlace) in touristicPlacesList.withIndex()) {
-            val distanceToTouristicPlace = distance(currentLocation.latitude,currentLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
-            touristicPlacesList[index].distance = distanceToTouristicPlace
-        }
-        touristicPlacesList.sortBy { it.distance }
+
+        orderTouristicPlacesList(currentKnownLocation)
 
         touristicPlacesRecyclerView.adapter = TouristicPlaceAdapter(touristicPlacesList, this)
 
@@ -203,16 +208,12 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
     }
 
     override fun onLocationChanged(newLocation: Location) {
-
-        for ((index,touristicPlace) in touristicPlacesList.withIndex()) {
-            val distanceToTouristicPlace = distance(newLocation.latitude,newLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
-            touristicPlacesList[index].distance = distanceToTouristicPlace
+        shouldUpdateView = true
+        currentKnownLocation = LatLng(newLocation.latitude,newLocation.longitude)
+        orderTouristicPlacesList (currentKnownLocation)
+        if (activityActive){
+            touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
         }
-        touristicPlacesList.sortBy { it.distance }
-
-/*
-        touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
-*/
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
@@ -228,11 +229,50 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         Log.v("Loc Update", "\nProvider disabled: $provider");
     }
 
-    private fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Double {
-        val radius = 6378137.0   // approximate Earth radius, *in meters*
-        val deltaLat = toLat - fromLat
-        val deltaLon = toLon - fromLon
-        val angle = (2 * asin(sqrt(sin(deltaLat / 2).pow(2.0) + cos(fromLat) * cos(toLat) * sin(deltaLon / 2).pow(2.0))))
-        return radius * angle
+
+    private fun orderTouristicPlacesList(newLocation: LatLng) {
+        for ((index,touristicPlace) in touristicPlacesList.withIndex()) {
+            val distanceToTouristicPlace = distance(newLocation.latitude,newLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
+            touristicPlacesList[index].distance = distanceToTouristicPlace
+        }
+        touristicPlacesList.sortBy { it.distance }
+    }
+
+    /* Obtain the distance between 2 given points by their latitude and longitude*/
+    private fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Float {
+        var loc1  = Location("")
+        loc1.latitude = fromLat
+        loc1.longitude = fromLon
+
+        var loc2  = Location("")
+        loc2.latitude = toLat
+        loc2.longitude = toLon
+
+        return loc1.distanceTo(loc2)
+    }
+
+
+
+
+    /* PREFERENCES: SAVE AND GET LAST KNOWN LOCATION */
+
+    private fun saveCurrentLocationToPrefs() {
+        var gsonCurrentKnownLocation = Gson()
+        var jsonCurrentKnownLocation = gsonCurrentKnownLocation.toJson(currentKnownLocation)
+
+        var sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        with(sharedPref.edit()){
+            putString(LAST_KNOWN_LOCATION_PREF, jsonCurrentKnownLocation)
+            commit()
+        }
+    }
+
+    private fun getLastLocationFromPrefs() {
+        var gsonCurrentKnownLocation = Gson()
+
+        var jsonLastKnownLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(LAST_KNOWN_LOCATION_PREF, null)
+        if (jsonLastKnownLocation != null) {
+            currentKnownLocation = gsonCurrentKnownLocation.fromJson(jsonLastKnownLocation, LatLng::class.java)
+        }
     }
 }

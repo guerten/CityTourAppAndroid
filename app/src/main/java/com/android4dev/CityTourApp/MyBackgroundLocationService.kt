@@ -1,20 +1,17 @@
 package com.android4dev.CityTourApp
 
-import android.R
-import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
 import android.os.Looper
-import android.support.v4.app.NotificationCompat
+import android.preference.PreferenceManager
 import android.support.v4.content.ContextCompat
-import android.util.Log
-import com.android4dev.CityTourApp.models.Coordinates
-import com.android4dev.CityTourApp.models.TP_Type
 import com.android4dev.CityTourApp.models.TouristicPlace
 import com.google.android.gms.location.*
+import com.google.gson.Gson
 
 
 class MyBackgroundLocationService : Service() {
@@ -24,47 +21,73 @@ class MyBackgroundLocationService : Service() {
     private val closeTouristicPlaces: ArrayList<TouristicPlace> = ArrayList()
     private var currentVisitingTouristicPlace: TouristicPlace? = null
 
+    /* Esto se podría organizar un poco mejor */
+    private val AUTOPLAY_SETTING : String = "enable_autoplay"
+    private val PUSH_NOTIFICATION_SETTING : String = "enable_notification"
+    private val TPVISITING_PREF : String = "currentVisitingTouristicPlace"
+
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult?) {
 
             if (locationResult == null) {
                 return
             }
-
             val newLocation: Location = locationResult.locations.last()
 
-            // ordeno los nuevos datos con respecto a mi ubicación actual modificada
+            // Order touristic places given the new location
             val mainActivityAux = MainActivity.getMainInstance()
             mainActivityAux.onLocationChanged(newLocation)
 
-            /* compruebo si tengo que hacer reproducir alguna audioguía o bien no hacer nada */
-            val firstTouristicPlaceInList = mainActivityAux.touristicPlacesList[0]
-            if (firstTouristicPlaceInList.distance!! <= 50.0) {
-                if (firstTouristicPlaceInList != currentVisitingTouristicPlace) {
-                    currentVisitingTouristicPlace = firstTouristicPlaceInList
+            var sharedPref = getSharedPref()
 
-                    val serviceIntent = Intent(applicationContext, NotificationService::class.java)
-                    serviceIntent.putExtra("touristicPlace", currentVisitingTouristicPlace)
-                    serviceIntent.action = NOTIFY_INIT
-                    startService(serviceIntent)
-                    NotificationGenerator.managerInstance.showBigContentMusicPlayer(applicationContext, currentVisitingTouristicPlace!!)
-                }
-                /* si no no hago nada ya que el mismo audio es el que ya se esta reproduciendo*/
-                else {  }
-            } else {
-                currentVisitingTouristicPlace = null
+
+
+            if (currentVisitingTouristicPlace == null){
+                currentVisitingTouristicPlace = getCurrentVisitingTouristicPlacePref(TPVISITING_PREF, sharedPref)
             }
+
+
+            /* Check whether the user has disabled push notifications */
+            var pushNotificationPref = getBooleanPref(PUSH_NOTIFICATION_SETTING, sharedPref)
+            if (pushNotificationPref){
+
+                /* Check if any touristic place is nearer than x metres */
+                val firstTouristicPlaceInList = mainActivityAux.touristicPlacesList[0]
+
+                if (firstTouristicPlaceInList.distance!! <= 50.0) {
+
+                    /* Check if the now nearest close touristicPlace is different from the last one */
+                    if (firstTouristicPlaceInList.title != currentVisitingTouristicPlace!!.title) {
+                        currentVisitingTouristicPlace = firstTouristicPlaceInList
+                        savePref (TPVISITING_PREF, currentVisitingTouristicPlace!!, sharedPref)
+
+                        val serviceIntent = Intent(applicationContext, NotificationService::class.java)
+                        var startNotificationWithAudioPlaying = getBooleanPref(AUTOPLAY_SETTING, sharedPref)
+                        if (startNotificationWithAudioPlaying){
+                            serviceIntent.action = NOTIFY_INIT
+                        }
+                        else {
+                            serviceIntent.action = NOTIFY_INIT_PAUSED
+                        }
+                        startService(serviceIntent)
+                        NotificationGenerator.managerInstance.showBigContentMusicPlayer(applicationContext, currentVisitingTouristicPlace!!)
+                    }
+                }
+
+                else {
+                    currentVisitingTouristicPlace = null
+                }
+            }
+
         }
     }
 
     override fun onCreate() {
-        Log.e(TAG, "on create")
         super.onCreate()
         mLocationClient = LocationServices.getFusedLocationProviderClient(applicationContext)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.e(TAG, "on start commmand")
         getLocationUpdates()
         return START_STICKY
     }
@@ -90,7 +113,36 @@ class MyBackgroundLocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.e(TAG, "On destroy")
         mLocationClient?.removeLocationUpdates(locationCallback)
     }
+
+
+    /* METHODS TO GET THE VALUES OF THE SETTINGS SAVED IN SHARED PREFERENCES*/
+    private fun getSharedPref () : SharedPreferences {
+        return PreferenceManager.getDefaultSharedPreferences(this)
+    }
+
+    private fun savePref(key:String, objectToSave: Any, sharedPref: SharedPreferences) {
+        var gsonObject = Gson()
+        var jsonObject = gsonObject.toJson(objectToSave)
+        with(sharedPref.edit()){
+            putString(key, jsonObject)
+            commit()
+        }
+    }
+
+    private fun getCurrentVisitingTouristicPlacePref(key: String, sharedPref: SharedPreferences) : TouristicPlace? {
+        var gsonCurrentKnownLocation = Gson()
+        var jsonTouristicPlaceAux = sharedPref.getString(key, null)
+        if (jsonTouristicPlaceAux != null){
+            return gsonCurrentKnownLocation.fromJson(jsonTouristicPlaceAux, TouristicPlace::class.java)
+        }
+
+        return null
+    }
+
+    private fun getBooleanPref(key: String, sharedPref: SharedPreferences) : Boolean {
+        return sharedPref.getBoolean(key, true)
+    }
+
 }

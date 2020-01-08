@@ -14,5 +14,5 @@ class TouristicPlace (
     var score: Double,
     var audioGuideUrl: String,
     val type: TP_Type,
-    var distance: Double? = null
+    var distance: Float? = null
 ) : Serializable

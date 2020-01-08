@@ -19,6 +19,7 @@ import android.content.IntentFilter
 
 const val NOTIFY_DELETE = "com.android4dev.CityTourApp.delete"
 const val NOTIFY_INIT = "com.android4dev.CityTourApp.init"
+const val NOTIFY_INIT_PAUSED = "com.android4dev.CityTourApp.initpaused"
 const val NOTIFY_PLAY = "com.android4dev.CityTourApp.play"
 const val NOTIFICATION_ID_BIG_CONTENT = 99
 
@@ -64,10 +65,10 @@ class NotificationGenerator {
 
         // Build the content of the notification
         val nBuilder = getNotificationBuilder(context,
-                "Music Player",
+                "AudioGuide Player",
                 "Control Audio",
-                R.drawable.laseo,
-                "Illustrate how a big content notification can be created.")
+                R.drawable.apollo_holo_dark_play,
+                "Created a new control notification for the audioguide.")
 
         // Notification through notification manager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -94,6 +95,8 @@ class NotificationGenerator {
         intentPlay.action = NOTIFY_PLAY
         val pendingIntentPlay = PendingIntent.getService(context, 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT)
         smallView.setOnClickPendingIntent(R.id.status_bar_play, pendingIntentPlay)
+
+        smallView.setImageViewResource(R.id.status_bar_icon, R.drawable.laseo)
         smallView.setTextViewText(R.id.status_bar_track_name, touristicPlace.title)
         smallView.setTextViewText(R.id.status_bar_artist_name, touristicPlace.subtitle)
     }
