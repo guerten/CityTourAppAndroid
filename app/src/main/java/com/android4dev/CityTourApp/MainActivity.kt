@@ -3,6 +3,8 @@ package com.android4dev.CityTourApp
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationListener
 import android.os.Bundle
@@ -37,7 +39,7 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 
-class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener {
+class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
@@ -164,17 +166,24 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         mMap = googleMap
 
         mMap.isMyLocationEnabled = true
+
+        centerMapToPosition(currentKnownLocation)
+
         /*mMap.uiSettings.isScrollGesturesEnabled = false
-        mMap.uiSettings.isZoomGesturesEnabled = true*/
+        mMap.uiSettings.isZoomGesturesEnabled = false*/
 
         for (tp in touristicPlacesList) {
-            val icon: BitmapDescriptor = when (tp.type) {
+            /*val icon: BitmapDescriptor = when (tp.type) {
                 TP_Type.HISTORIC -> BitmapDescriptorFactory.fromResource(R.drawable.historic)
 
                 TP_Type.NATURE -> BitmapDescriptorFactory.fromResource(R.drawable.tree)
             }
             val markerOptions = MarkerOptions().position(LatLng(tp.coordinates.latitude, tp.coordinates.longitude)).icon(icon)
-            mMap.addMarker(markerOptions)
+            mMap.addMarker(markerOptions)*/
+
+            mMap.addMarker(MarkerOptions().title(tp.title).position(LatLng(tp.coordinates.latitude, tp.coordinates.longitude)).icon(BitmapDescriptorFactory.fromBitmap(
+                    resizeBitmap(tp.type, 96, 96)
+            )))
 
         }
 
@@ -183,6 +192,34 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onMarkerClick(marker: Marker?): Boolean {
+        return if(marker != null) {
+            val distanceToTouristicPlace = distance(marker.position.latitude, marker.position.longitude, currentKnownLocation.latitude, currentKnownLocation.longitude)
+            marker.snippet = "Distancia: ${distanceToTouristicPlace} m."
+            true
+        } else {
+            false
+        }
+    }
+
+    override fun onInfoWindowClick(marker: Marker?) {
+        if (marker != null) {
+            /*val intent = Intent(applicationContext,TouristicPlaceDetail::class.java)
+            intent.putExtra("tpItem", touristicPlace)
+            applicationContext.startActivity(intent)*/
+        }
+    }
+
+    private fun resizeBitmap(type: TP_Type, width: Int, height: Int): Bitmap? {
+        var imageBitmap: Bitmap? = null
+        if (type == TP_Type.HISTORIC) {
+            imageBitmap = BitmapFactory.decodeResource(resources, resources.getIdentifier("historic", "drawable", packageName))
+        } else if (type == TP_Type.NATURE) {
+            imageBitmap = BitmapFactory.decodeResource(resources, resources.getIdentifier("icono_naturaleza", "drawable", packageName))
+        }
+        return Bitmap.createScaledBitmap(imageBitmap, width, height, false)
 
     }
 
@@ -204,17 +241,18 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
                 fragmentLayoutMap.layoutParams = mapLayoutParams
             }
 
-            override fun onStateChanged(bottomSheet: View, newState: Int) { }
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                Log.v("BS Change State", "$newState")
+            }
         })
     }
 
     override fun onLocationChanged(newLocation: Location) {
         shouldUpdateView = true
         currentKnownLocation = LatLng(newLocation.latitude,newLocation.longitude)
-        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(currentKnownLocation, 18f)
-        mMap.animateCamera(cameraUpdate)
-        orderTouristicPlacesList (currentKnownLocation)
+
         if (activityActive){
+            centerMapToPosition(currentKnownLocation)
             touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
         }
     }
@@ -254,8 +292,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
         return loc1.distanceTo(loc2)
     }
 
-
-
+    private fun centerMapToPosition(location: LatLng) {
+        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, 18f)
+        mMap.animateCamera(cameraUpdate)
+        orderTouristicPlacesList (currentKnownLocation)
+    }
 
     /* PREFERENCES: SAVE AND GET LAST KNOWN LOCATION */
 
@@ -278,4 +319,5 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener 
             currentKnownLocation = gsonCurrentKnownLocation.fromJson(jsonLastKnownLocation, LatLng::class.java)
         }
     }
+
 }
