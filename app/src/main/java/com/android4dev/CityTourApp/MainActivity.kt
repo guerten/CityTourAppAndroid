@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
 
     override fun onStop() {
         activityActive = false
-        saveCurrentLocationToPrefs ()
+        saveCurrentLocationToPrefs()
         super.onStop()
     }
 
@@ -103,7 +103,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
                         mapFragment.getMapAsync(instance)
                         initBottomSheetView()
                         startLocationService()
-                        updateLocation()
                     }
 
                     override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest?, token: PermissionToken?) {}
@@ -113,15 +112,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
                     }
 
                 }).check()
-    }
-
-    private fun updateLocation() {
-        buildLocationRequest()
-
-        if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, getPendingIntent())
-        }
     }
 
     private fun startLocationService() {
@@ -134,28 +124,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         stopService(intent)
     }
 
-    private fun getPendingIntent(): PendingIntent? {
-        val intent = Intent(this@MainActivity, LocationService::class.java)
-        intent.action = LocationService.ACTION_PROCESS_UPDATE
-        return PendingIntent.getBroadcast(this@MainActivity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-    }
-
-    fun updatePosition(location: Location) {
-        //Log.e("is location", "drawing new position from receiver")
-
-        /*this@MainActivity.runOnUiThread {
-            lastPositionMarker?.remove()
-            val newPosition = LatLng(location.latitude, location.longitude)
-            val markerOptions = MarkerOptions().position(newPosition).title("You are here!!")
-            lastPositionMarker = mMap.addMarker(markerOptions)
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 2000.0F))
-        }*/
-
-        /***
-         * Here we can check if a touristic place is discovered when app is running in foreground
-         */
-    }
-
     private fun buildLocationRequest() {
         locationRequest = LocationRequest()
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -163,7 +131,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         locationRequest.fastestInterval = 3000
         locationRequest.smallestDisplacement = 10f
     }
-
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -174,15 +141,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
 
         centerMapToPosition(currentKnownLocation)
 
-        /*mMap.uiSettings.isScrollGesturesEnabled = false
-        mMap.uiSettings.isZoomGesturesEnabled = false*/
-
         for (tp in touristicPlacesList) {
             mMap.addMarker(MarkerOptions().title(tp.title).snippet("Distancia: ${String.format("%.1f", tp.distance)} metros").position(LatLng(tp.coordinates.latitude, tp.coordinates.longitude)).icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap(tp.type))))
         }
 
         settingsButton.setOnClickListener {
-            // Open new view with settings
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
@@ -261,7 +224,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         touristicPlacesList.sortBy { it.distance }
     }
 
-    /* Obtain the distance between 2 given points by their latitude and longitude*/
     private fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Float {
         val loc1  = Location("")
         loc1.latitude = fromLat
