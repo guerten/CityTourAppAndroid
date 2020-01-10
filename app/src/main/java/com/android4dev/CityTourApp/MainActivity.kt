@@ -23,8 +23,10 @@ import com.google.android.gms.maps.SupportMapFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import com.android4dev.CityTourApp.data.DataInitializer
+import com.android4dev.CityTourApp.models.Coordinates
 import kotlinx.android.synthetic.main.fragment_map.*
 import kotlin.collections.ArrayList
 import com.android4dev.CityTourApp.models.TP_Type
@@ -38,6 +40,7 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import java.text.DecimalFormat
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
@@ -164,7 +167,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
+        mMap.setOnInfoWindowClickListener(this)
+        mMap.setOnMarkerClickListener(this)
+        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(applicationContext, R.raw.map_style))
         mMap.isMyLocationEnabled = true
 
         centerMapToPosition(currentKnownLocation)
@@ -173,18 +178,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         mMap.uiSettings.isZoomGesturesEnabled = false*/
 
         for (tp in touristicPlacesList) {
-            /*val icon: BitmapDescriptor = when (tp.type) {
-                TP_Type.HISTORIC -> BitmapDescriptorFactory.fromResource(R.drawable.historic)
-
-                TP_Type.NATURE -> BitmapDescriptorFactory.fromResource(R.drawable.tree)
-            }
-            val markerOptions = MarkerOptions().position(LatLng(tp.coordinates.latitude, tp.coordinates.longitude)).icon(icon)
-            mMap.addMarker(markerOptions)*/
-
-            mMap.addMarker(MarkerOptions().title(tp.title).position(LatLng(tp.coordinates.latitude, tp.coordinates.longitude)).icon(BitmapDescriptorFactory.fromBitmap(
-                    resizeBitmap(tp.type, 96, 96)
-            )))
-
+            mMap.addMarker(MarkerOptions().title(tp.title).snippet("Distancia: ${String.format("%.1f", tp.distance)} metros").position(LatLng(tp.coordinates.latitude, tp.coordinates.longitude)).icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap(tp.type))))
         }
 
         settingsButton.setOnClickListener {
@@ -194,32 +188,20 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         }
     }
 
-    override fun onMarkerClick(marker: Marker?): Boolean {
-        return if(marker != null) {
-            val distanceToTouristicPlace = distance(marker.position.latitude, marker.position.longitude, currentKnownLocation.latitude, currentKnownLocation.longitude)
-            marker.snippet = "Distancia: ${distanceToTouristicPlace} m."
-            true
-        } else {
-            false
-        }
-    }
+    private fun resizeBitmap(type: TP_Type): Bitmap? {
 
-    override fun onInfoWindowClick(marker: Marker?) {
-        if (marker != null) {
-            /*val intent = Intent(applicationContext,TouristicPlaceDetail::class.java)
-            intent.putExtra("tpItem", touristicPlace)
-            applicationContext.startActivity(intent)*/
+        val imageBitmap = when (type) {
+            TP_Type.HISTORIC -> {
+                BitmapFactory.decodeResource(resources, resources.getIdentifier("icono_cultura", "drawable", packageName))
+            }
+            TP_Type.NATURE -> {
+                BitmapFactory.decodeResource(resources, resources.getIdentifier("icono_naturaleza", "drawable", packageName))
+            }
+            TP_Type.BUSINESS -> {
+                BitmapFactory.decodeResource(resources, resources.getIdentifier("icono_negocios", "drawable", packageName))
+            }
         }
-    }
-
-    private fun resizeBitmap(type: TP_Type, width: Int, height: Int): Bitmap? {
-        var imageBitmap: Bitmap? = null
-        if (type == TP_Type.HISTORIC) {
-            imageBitmap = BitmapFactory.decodeResource(resources, resources.getIdentifier("historic", "drawable", packageName))
-        } else if (type == TP_Type.NATURE) {
-            imageBitmap = BitmapFactory.decodeResource(resources, resources.getIdentifier("icono_naturaleza", "drawable", packageName))
-        }
-        return Bitmap.createScaledBitmap(imageBitmap, width, height, false)
+        return Bitmap.createScaledBitmap(imageBitmap, 128, 128, false)
 
     }
 
@@ -293,7 +275,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     }
 
     private fun centerMapToPosition(location: LatLng) {
-        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, 18f)
+        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, 17f)
         mMap.animateCamera(cameraUpdate)
         orderTouristicPlacesList (currentKnownLocation)
     }
@@ -317,6 +299,28 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         val jsonLastKnownLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(LAST_KNOWN_LOCATION_PREF, null)
         if (jsonLastKnownLocation != null) {
             currentKnownLocation = gsonCurrentKnownLocation.fromJson(jsonLastKnownLocation, LatLng::class.java)
+        }
+    }
+
+    override fun onMarkerClick(marker: Marker?): Boolean {
+        return if(marker != null) {
+            val distanceToTouristicPlace = distance(marker.position.latitude, marker.position.longitude, currentKnownLocation.latitude, currentKnownLocation.longitude)
+            marker.snippet = "Distancia: ${String.format("%.1f", distanceToTouristicPlace)} metros"
+            marker.showInfoWindow()
+            true
+        } else {
+            false
+        }
+    }
+
+    override fun onInfoWindowClick(marker: Marker?) {
+        if (marker != null) {
+            val touristicPlace = touristicPlacesList.firstOrNull { it.title == marker.title }
+            if (touristicPlace != null) {
+                val intent = Intent(applicationContext,TouristicPlaceDetail::class.java)
+                intent.putExtra("tpItem", touristicPlace)
+                applicationContext.startActivity(intent)
+            }
         }
     }
 
