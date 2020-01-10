@@ -16,15 +16,8 @@ import com.google.gson.Gson
 
 class MyBackgroundLocationService : Service() {
 
-    private val TAG = "BACKGROUND LOC SERVICE"
     private var mLocationClient: FusedLocationProviderClient? = null
-    private val closeTouristicPlaces: ArrayList<TouristicPlace> = ArrayList()
     private var currentVisitingTouristicPlace: TouristicPlace? = null
-
-    /* Esto se podría organizar un poco mejor */
-    private val AUTOPLAY_SETTING : String = "enable_autoplay"
-    private val PUSH_NOTIFICATION_SETTING : String = "enable_notification"
-    private val TPVISITING_PREF : String = "currentVisitingTouristicPlace"
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult?) {
@@ -40,15 +33,13 @@ class MyBackgroundLocationService : Service() {
 
             val sharedPref = getSharedPref()
 
-
-
             if (currentVisitingTouristicPlace == null){
-                currentVisitingTouristicPlace = getCurrentVisitingTouristicPlacePref(TPVISITING_PREF, sharedPref)
+                currentVisitingTouristicPlace = getCurrentVisitingTouristicPlacePref(Globals.TPVISITING_PREF, sharedPref)
             }
 
 
             /* Check whether the user has disabled push notifications */
-            val pushNotificationPref = getBooleanPref(PUSH_NOTIFICATION_SETTING, sharedPref)
+            val pushNotificationPref = getBooleanPref(Globals.PUSH_NOTIFICATION_SETTING, sharedPref)
             if (pushNotificationPref){
 
                 /* Check if any touristic place is nearer than x metres */
@@ -57,12 +48,14 @@ class MyBackgroundLocationService : Service() {
                 if (firstTouristicPlaceInList.distance!! <= 50.0) {
 
                     /* Check if the now nearest close touristicPlace is different from the last one */
-                    if (firstTouristicPlaceInList.title != currentVisitingTouristicPlace!!.title) {
+                    if (currentVisitingTouristicPlace == null || firstTouristicPlaceInList.title != currentVisitingTouristicPlace!!.title) {
                         currentVisitingTouristicPlace = firstTouristicPlaceInList
-                        savePref (TPVISITING_PREF, currentVisitingTouristicPlace!!, sharedPref)
+                        savePref (Globals.TPVISITING_PREF, currentVisitingTouristicPlace!!, sharedPref)
 
                         val serviceIntent = Intent(applicationContext, NotificationService::class.java)
-                        val startNotificationWithAudioPlaying = getBooleanPref(AUTOPLAY_SETTING, sharedPref)
+                        serviceIntent!!.putExtra("touristicPlace", currentVisitingTouristicPlace)
+
+                        val startNotificationWithAudioPlaying = getBooleanPref(Globals.AUTOPLAY_SETTING, sharedPref)
                         if (startNotificationWithAudioPlaying){
                             serviceIntent.action = NOTIFY_INIT
                         }

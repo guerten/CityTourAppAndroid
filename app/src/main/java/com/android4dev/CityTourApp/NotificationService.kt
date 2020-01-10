@@ -123,17 +123,17 @@ class NotificationService : Service() {
         stopSelf()
         // Terminate the notification
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(NOTIFICATION_ID_BIG_CONTENT)
+        notificationManager.cancel(NOTIFICATION_ID)
     }
 
     private fun changePlayToPauseButton () {
         NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause)
-        NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
+        NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID, NotificationGenerator.managerInstance.notification)
     }
 
     private fun changePauseToPlayButton () {
         NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play)
-        NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID_BIG_CONTENT, NotificationGenerator.managerInstance.notification)
+        NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID, NotificationGenerator.managerInstance.notification)
     }
     private fun touristicPlaceExists () : Boolean {
         return touristicPlace!=null

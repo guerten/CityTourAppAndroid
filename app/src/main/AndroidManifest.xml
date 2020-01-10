@@ -32,10 +32,9 @@
 
         <activity android:name=".SettingsActivity" />
 
-        <receiver android:name=".LocationService" />
-
         <activity android:name=".TouristicPlaceDetail"
-            android:parentActivityName=".MainActivity"></activity>
+            android:parentActivityName=".MainActivity"
+            android:launchMode="singleTop"></activity>
 
         <activity android:name="com.android4dev.CityTourApp.MainActivity"
             android:label="@string/title_activity_maps">

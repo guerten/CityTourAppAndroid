@@ -1,8 +1,6 @@
 package com.android4dev.CityTourApp
 
-import android.app.PendingIntent
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
@@ -12,7 +10,6 @@ import android.preference.PreferenceManager
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.BottomSheetBehavior
 import android.support.design.widget.CoordinatorLayout
-import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_bottom_sheet.*
@@ -23,10 +20,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import android.support.v7.widget.DividerItemDecoration
 import android.util.Log
-import android.widget.TextView
 import android.widget.Toast
 import com.android4dev.CityTourApp.data.DataInitializer
-import com.android4dev.CityTourApp.models.Coordinates
 import kotlinx.android.synthetic.main.fragment_map.*
 import kotlin.collections.ArrayList
 import com.android4dev.CityTourApp.models.TP_Type
@@ -40,21 +35,16 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
-import java.text.DecimalFormat
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
     private lateinit var locationRequest: LocationRequest
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
     val touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
-    private var lastPositionMarker: Marker? = null
-    private var shouldUpdateView: Boolean = true
-    private var currentKnownLocation: LatLng = LatLng(40.416775,-3.703790)
+    private var shouldUpdateView: Boolean = false
+    private var currentKnownLocation: LatLng = Globals.DEFAULT_LOCATION
     var activityActive : Boolean = false
-    var LAST_KNOWN_LOCATION_PREF : String = "last_known_location_pref"
 
     companion object {
         var instance: MainActivity = MainActivity()
@@ -250,7 +240,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
 
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         with(sharedPref.edit()){
-            putString(LAST_KNOWN_LOCATION_PREF, jsonCurrentKnownLocation)
+            putString(Globals.LAST_KNOWN_LOCATION_PREF, jsonCurrentKnownLocation)
             commit()
         }
     }
@@ -258,7 +248,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     private fun getLastLocationFromPrefs() {
         val gsonCurrentKnownLocation = Gson()
 
-        val jsonLastKnownLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(LAST_KNOWN_LOCATION_PREF, null)
+        val jsonLastKnownLocation = PreferenceManager.getDefaultSharedPreferences(this).getString(Globals.LAST_KNOWN_LOCATION_PREF, null)
         if (jsonLastKnownLocation != null) {
             currentKnownLocation = gsonCurrentKnownLocation.fromJson(jsonLastKnownLocation, LatLng::class.java)
         }

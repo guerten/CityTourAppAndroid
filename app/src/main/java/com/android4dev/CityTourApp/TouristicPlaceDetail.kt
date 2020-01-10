@@ -48,11 +48,6 @@ class TouristicPlaceDetail : AppCompatActivity() {
         })
     }
 
-
-    /**
-     * Handle all notification test buttons.
-     * @param [view] identify the button.
-     */
     fun showNotification(view: View) {
         if (null == ng) ng = NotificationGenerator()
 
@@ -69,6 +64,8 @@ class TouristicPlaceDetail : AppCompatActivity() {
     }
 }
 
+
+// Add swipe right behavior on this activity
 open class OnSwipeTouchListener (context: Context) : View.OnTouchListener {
 
     private val gestureDetector = GestureDetector(context, GestureListener())
