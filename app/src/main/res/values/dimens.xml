@@ -11,7 +11,7 @@
 
     <!-- Notification bar button -->
     <dimen name="status_bar_button_width_height">48dp</dimen>
-    <dimen name="status_bar_album_art">64dp</dimen>
+    <dimen name="status_bar_album_art">56dp</dimen>
     <dimen name="status_bar_button_info_container_padding_left">11dp</dimen>
     <dimen name="notification_expanded_height">128dp</dimen>
     <dimen name="play_controls_notification">48dp</dimen>

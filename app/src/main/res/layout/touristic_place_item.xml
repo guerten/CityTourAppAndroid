@@ -17,10 +17,10 @@
 
     <ImageView
         android:id="@+id/imageView_tpImage"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="15dp"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="15dp"
         android:adjustViewBounds="false"
         android:background="#00F30909"
         android:contentDescription="TODO"
@@ -38,8 +38,8 @@
         <TextView
             android:id="@+id/textView_tpTitle"
             android:layout_width="match_parent"
-            android:layout_height="13dp"
-            android:layout_marginRight="2dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="2dp"
             android:layout_marginBottom="5dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
@@ -53,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="2dp"
+            android:layout_marginEnd="2dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:text="TextView" />
@@ -63,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|right"
-            android:layout_marginRight="2dp"
+            android:layout_marginEnd="2dp"
             android:layout_weight="0"
             android:gravity="bottom|right"
             android:text="TextView" />

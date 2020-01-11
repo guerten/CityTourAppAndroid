@@ -3,7 +3,6 @@ package com.android4dev.CityTourApp
 import com.google.android.gms.maps.model.LatLng
 
 object Globals {
-
     val DEFAULT_LOCATION: LatLng = LatLng(40.416775,-3.703790)
 
     // PREFERENCES

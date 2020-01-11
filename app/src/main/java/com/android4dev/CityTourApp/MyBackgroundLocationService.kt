@@ -1,5 +1,6 @@
 package com.android4dev.CityTourApp
 
+import android.app.Notification
 import android.app.Service
 import android.content.Intent
 import android.content.SharedPreferences
@@ -12,6 +13,13 @@ import android.support.v4.content.ContextCompat
 import com.android4dev.CityTourApp.models.TouristicPlace
 import com.google.android.gms.location.*
 import com.google.gson.Gson
+import android.os.Build
+import android.app.NotificationManager
+import android.app.NotificationChannel
+import android.content.Context
+import android.graphics.Color
+import android.support.annotation.RequiresApi
+import android.support.v4.app.NotificationCompat
 
 
 class MyBackgroundLocationService : Service() {
@@ -53,7 +61,7 @@ class MyBackgroundLocationService : Service() {
                         savePref (Globals.TPVISITING_PREF, currentVisitingTouristicPlace!!, sharedPref)
 
                         val serviceIntent = Intent(applicationContext, NotificationService::class.java)
-                        serviceIntent!!.putExtra("touristicPlace", currentVisitingTouristicPlace)
+                        serviceIntent.putExtra("touristicPlace", currentVisitingTouristicPlace)
 
                         val startNotificationWithAudioPlaying = getBooleanPref(Globals.AUTOPLAY_SETTING, sharedPref)
                         if (startNotificationWithAudioPlaying){
@@ -75,14 +83,39 @@ class MyBackgroundLocationService : Service() {
         }
     }
 
+
     override fun onCreate() {
         super.onCreate()
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+            startMyOwnForeground()
+        else
+            startForeground(1, Notification())
         mLocationClient = LocationServices.getFusedLocationProviderClient(applicationContext)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         getLocationUpdates()
         return START_STICKY
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startMyOwnForeground() {
+        val NOTIFICATION_CHANNEL_ID = Globals.channelId
+        val channelName = "Background Service"
+        val chan = NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE)
+        chan.lightColor = Color.BLUE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(chan)
+
+        val notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+        val notification = notificationBuilder.setOngoing(true)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build()
+        startForeground(2, notification)
     }
 
     private fun getLocationUpdates() {
@@ -106,6 +139,10 @@ class MyBackgroundLocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        val broadcastIntent = Intent()
+        broadcastIntent.action = "restartservice"
+        broadcastIntent.setClass(this, BackgroundLocationServiceRestarter::class.java!!)
+        this.sendBroadcast(broadcastIntent)
         mLocationClient?.removeLocationUpdates(locationCallback)
     }
 

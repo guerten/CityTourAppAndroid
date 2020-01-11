@@ -2,6 +2,7 @@ package com.android4dev.CityTourApp
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -37,7 +38,11 @@ class ViewHolder (view: View) : RecyclerView.ViewHolder(view) {
         tpTitle.text = touristicPlace.title
         tpSubtitle.text = touristicPlace.subtitle
         tpDistance.text = "${"%.1f".format(touristicPlace.distance!!.div(1000))} km"
-        tpImage.setImageResource(context.resources.getIdentifier(touristicPlace.imageFileName, "drawable", context.packageName))
+
+        var imageId = context.resources.getIdentifier(touristicPlace.imageFileName, "drawable", context.packageName)
+        var imageBitmap = BitmapFactory.decodeResource(context.resources, imageId)
+        var imageCircleBitmap = StylesManager.getCircleBitmap(imageBitmap)
+        tpImage.setImageBitmap(imageCircleBitmap)
 
         itemView.setOnClickListener {
             val intent = Intent(context,TouristicPlaceDetail::class.java)

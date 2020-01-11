@@ -6,13 +6,14 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
-import android.graphics.Color
+import android.graphics.*
 import android.os.Build
 import android.os.Build.VERSION_CODES.O
 import android.view.View
 import android.widget.RemoteViews
 import com.android4dev.CityTourApp.models.TouristicPlace
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
 
 
 const val NOTIFY_DELETE = Globals.TPVISITING_PREF + ".delete"
@@ -37,7 +38,7 @@ class NotificationGenerator {
 
         val managerInstance: NotificationGenerator
             get() {
-                return instance!!
+                return instance
             }
     }
 
@@ -96,11 +97,16 @@ class NotificationGenerator {
         smallView.setOnClickPendingIntent(R.id.status_bar_play, pendingIntentPlay)
 
         var imageId = context.resources.getIdentifier(touristicPlace.imageFileName, "drawable", context.packageName)
-        smallView.setImageViewResource(R.id.status_bar_icon, imageId)
+        var imageBitmap = BitmapFactory.decodeResource(context.resources, imageId)
+        var imageCircleBitmap = StylesManager.getCircleBitmap(imageBitmap)
+        smallView.setImageViewBitmap(R.id.status_bar_icon, imageCircleBitmap)
 
-        smallView.setTextViewText(R.id.status_bar_track_name, touristicPlace.title)
-        smallView.setTextViewText(R.id.status_bar_artist_name, touristicPlace.subtitle)
+        smallView.setTextViewText(R.id.status_bar_place_discovered, touristicPlace.title + " discovered")
     }
+
+
+
+
 
     private fun getNotificationBuilder(context: Context,
                                        notificationTitle: String,

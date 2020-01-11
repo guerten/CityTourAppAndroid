@@ -35,8 +35,7 @@ class NotificationService : Service() {
             removeAudio()
         }
         else {
-            val action = intent!!.action
-            when (action) {
+            when (intent.action) {
                 NOTIFY_PLAY -> {
                     playAudio()
                 }
@@ -136,6 +135,6 @@ class NotificationService : Service() {
         NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID, NotificationGenerator.managerInstance.notification)
     }
     private fun touristicPlaceExists () : Boolean {
-        return touristicPlace!=null
+        return ::touristicPlace.isInitialized
     }
 }

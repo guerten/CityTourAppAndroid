@@ -1,5 +1,7 @@
 package com.android4dev.CityTourApp
 
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -46,6 +48,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     private var currentKnownLocation: LatLng = Globals.DEFAULT_LOCATION
     var activityActive : Boolean = false
 
+
+
     companion object {
         var instance: MainActivity = MainActivity()
 
@@ -76,7 +80,26 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         super.onStop()
     }
 
+    override fun onDestroy() {
+        stopLocationService();
+
+        super.onDestroy()
+    }
+
+    private fun isMyServiceRunning(serviceClass: Class<MyBackgroundLocationService>): Boolean {
+        var manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i ("Service status", "Running")
+                return true
+            }
+        }
+        Log.i ("Service status", "Not running")
+        return false
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme)
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -106,7 +129,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
 
     private fun startLocationService() {
         val intent = Intent(this, MyBackgroundLocationService::class.java)
-        startService(intent)
+        if (!isMyServiceRunning(MyBackgroundLocationService::class.java)) {
+
+            startService(intent)
+        }
     }
 
     private fun stopLocationService() {

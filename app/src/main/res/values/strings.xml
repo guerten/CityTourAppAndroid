@@ -1,11 +1,14 @@
 <resources>
-    <string name="app_name">CityTourApp</string>
+    <string name="app_name">CityTour</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_maps">Map</string>
 
     <string name="cd_play">Play and pause</string>
-
-    <string name="dummy_album_name">dummy album name</string>
-    <string name="dummy_artist_name">dummy artist name</string>
-    <string name="dummy_track_name">dummy track name</string>
+    <string name="touristic_place_image">Touristic place image</string>
+    <string name="play_audio_guide">PLAY AUDIO GUIDE</string>
+    <string name="score">Score</string>
+    <string name="description">Description</string>
+    <string name="tp_description_text">TP description text</string>
+    <string name="tp_description_title">TP description title</string>
+    <string name="title">Title</string>
+    <string name="new_place_discovered_text">New place discovered</string>
 </resources>
