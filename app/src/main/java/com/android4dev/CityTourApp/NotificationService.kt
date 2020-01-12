@@ -126,12 +126,12 @@ class NotificationService : Service() {
     }
 
     private fun changePlayToPauseButton () {
-        NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause)
+        NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_pause_black)
         NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID, NotificationGenerator.managerInstance.notification)
     }
 
     private fun changePauseToPlayButton () {
-        NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play)
+        NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play_black)
         NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID, NotificationGenerator.managerInstance.notification)
     }
     private fun touristicPlaceExists () : Boolean {

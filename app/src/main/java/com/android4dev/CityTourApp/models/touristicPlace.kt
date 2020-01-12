@@ -15,4 +15,8 @@ class TouristicPlace (
     var audioGuideUrl: String,
     val type: TP_Type,
     var distance: Float? = null
-) : Serializable
+) : Serializable, Cloneable {
+    override public fun clone(): Any {
+        return super.clone()
+    }
+}

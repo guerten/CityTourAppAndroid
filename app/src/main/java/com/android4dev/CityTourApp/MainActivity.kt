@@ -24,6 +24,7 @@ import android.support.v7.widget.DividerItemDecoration
 import android.util.Log
 import android.widget.Toast
 import com.android4dev.CityTourApp.data.DataInitializer
+import com.android4dev.CityTourApp.models.Coordinates
 import kotlinx.android.synthetic.main.fragment_map.*
 import kotlin.collections.ArrayList
 import com.android4dev.CityTourApp.models.TP_Type
@@ -42,13 +43,12 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
     private lateinit var mMap: GoogleMap
-    private lateinit var locationRequest: LocationRequest
-    val touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
+    var touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
     private var shouldUpdateView: Boolean = false
     private var currentKnownLocation: LatLng = Globals.DEFAULT_LOCATION
     var activityActive : Boolean = false
-
-
+    private lateinit var tpAdapter : TouristicPlaceAdapter
+    private var firstLocationReceived: Boolean = false
 
     companion object {
         var instance: MainActivity = MainActivity()
@@ -67,8 +67,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
 
         /* If a new location has come, then we need to update the recycleView UI*/
         if (shouldUpdateView){
-            touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
+            tpAdapter.notifyDataSetChanged()
             shouldUpdateView = false
+            centerMapToPosition(currentKnownLocation)
+
         }
         overridePendingTransition(R.anim.slide_back_in, R.anim.slide_back_out)
         super.onResume()
@@ -81,8 +83,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     }
 
     override fun onDestroy() {
-        stopLocationService();
-
+        stopLocationService()
         super.onDestroy()
     }
 
@@ -130,7 +131,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     private fun startLocationService() {
         val intent = Intent(this, MyBackgroundLocationService::class.java)
         if (!isMyServiceRunning(MyBackgroundLocationService::class.java)) {
-
             startService(intent)
         }
     }
@@ -138,14 +138,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     private fun stopLocationService() {
         val intent = Intent(this, MyBackgroundLocationService::class.java)
         stopService(intent)
-    }
-
-    private fun buildLocationRequest() {
-        locationRequest = LocationRequest()
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        locationRequest.interval = 5000
-        locationRequest.fastestInterval = 3000
-        locationRequest.smallestDisplacement = 10f
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -191,9 +183,10 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         val mDividerItemDecoration = DividerItemDecoration(touristicPlacesRecyclerView.context, DividerItemDecoration.VERTICAL)
         touristicPlacesRecyclerView.addItemDecoration(mDividerItemDecoration)
 
-        orderTouristicPlacesList(currentKnownLocation)
-
-        touristicPlacesRecyclerView.adapter = TouristicPlaceAdapter(touristicPlacesList, this)
+        touristicPlacesList = getTouristicPlacesListOrdered(currentKnownLocation)
+        tpAdapter = TouristicPlaceAdapter(this)
+        touristicPlacesRecyclerView.adapter = tpAdapter
+        tpAdapter.items = touristicPlacesList
 
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
 
@@ -211,10 +204,14 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     override fun onLocationChanged(newLocation: Location) {
         shouldUpdateView = true
         currentKnownLocation = LatLng(newLocation.latitude,newLocation.longitude)
-
-        if (activityActive){
+        if (!firstLocationReceived) {
+            firstLocationReceived = true
             centerMapToPosition(currentKnownLocation)
-            touristicPlacesRecyclerView.adapter!!.notifyDataSetChanged()
+        }
+        var newTouristicPlaceOrderedClass = getTouristicPlacesListOrdered(currentKnownLocation)
+        if (activityActive){
+            tpAdapter.items = newTouristicPlaceOrderedClass
+            touristicPlacesList = newTouristicPlaceOrderedClass
         }
     }
 
@@ -232,12 +229,25 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     }
 
 
-    private fun orderTouristicPlacesList(newLocation: LatLng) {
-        for ((index,touristicPlace) in touristicPlacesList.withIndex()) {
+    private fun getTouristicPlacesListOrdered(newLocation: LatLng): ArrayList<TouristicPlace> {
+        val cloneTouristicPlacesList = deepCopiedArrayList()
+        for ((index,touristicPlace) in cloneTouristicPlacesList.withIndex()) {
             val distanceToTouristicPlace = distance(newLocation.latitude,newLocation.longitude, touristicPlace.coordinates.latitude,touristicPlace.coordinates.longitude)
-            touristicPlacesList[index].distance = distanceToTouristicPlace
+            cloneTouristicPlacesList[index].distance = distanceToTouristicPlace
         }
+        return ArrayList(cloneTouristicPlacesList.sortedWith(compareBy {it.distance}))
+/*
         touristicPlacesList.sortBy { it.distance }
+*/
+    }
+
+    fun deepCopiedArrayList () : ArrayList<TouristicPlace> {
+        var iterator = touristicPlacesList.iterator()
+        var arrayListCloned = arrayListOf<TouristicPlace>()
+        while(iterator.hasNext()){
+            arrayListCloned.add( iterator.next().clone() as TouristicPlace)
+        }
+        return arrayListCloned
     }
 
     private fun distance(fromLat: Double, fromLon: Double, toLat: Double, toLon: Double): Float {
@@ -255,7 +265,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     private fun centerMapToPosition(location: LatLng) {
         val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, 17f)
         mMap.animateCamera(cameraUpdate)
-        orderTouristicPlacesList (currentKnownLocation)
     }
 
     /* PREFERENCES: SAVE AND GET LAST KNOWN LOCATION */

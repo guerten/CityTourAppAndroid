@@ -23,13 +23,11 @@ import android.support.v4.app.NotificationCompat
 
 
 class MyBackgroundLocationService : Service() {
-
     private var mLocationClient: FusedLocationProviderClient? = null
     private var currentVisitingTouristicPlace: TouristicPlace? = null
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult?) {
-
             if (locationResult == null) {
                 return
             }
@@ -49,12 +47,10 @@ class MyBackgroundLocationService : Service() {
             /* Check whether the user has disabled push notifications */
             val pushNotificationPref = getBooleanPref(Globals.PUSH_NOTIFICATION_SETTING, sharedPref)
             if (pushNotificationPref){
-
                 /* Check if any touristic place is nearer than x metres */
                 val firstTouristicPlaceInList = mainActivityAux.touristicPlacesList[0]
 
                 if (firstTouristicPlaceInList.distance!! <= 50.0) {
-
                     /* Check if the now nearest close touristicPlace is different from the last one */
                     if (currentVisitingTouristicPlace == null || firstTouristicPlaceInList.title != currentVisitingTouristicPlace!!.title) {
                         currentVisitingTouristicPlace = firstTouristicPlaceInList

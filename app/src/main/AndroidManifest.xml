@@ -11,6 +11,7 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/logo_citytour_without_text"
         android:supportsRtl="true"
+        android:largeHeap="true"
         android:theme="@style/AppTheme">
 
         <receiver
