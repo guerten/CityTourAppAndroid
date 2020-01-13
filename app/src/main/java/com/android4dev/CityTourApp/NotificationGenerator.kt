@@ -102,9 +102,6 @@ class NotificationGenerator {
     }
 
 
-
-
-
     private fun getNotificationBuilder(context: Context,
                                        notificationTitle: String,
                                        notificationText: String,
@@ -147,7 +144,6 @@ class NotificationGenerator {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             builder.setVisibility(Notification.VISIBILITY_PRIVATE)
         }
-
         return builder
     }
 
@@ -156,9 +152,7 @@ class NotificationGenerator {
         var notificationIntentClass: Class<*> = TouristicPlaceDetail::class.java
         val resultIntent = Intent(context, notificationIntentClass)
         resultIntent.putExtra("tpItem",touristicPlace)
-        val resultPendingIntent = PendingIntent.getActivity(context, 0,
+        return PendingIntent.getActivity(context, 0,
                 resultIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        return resultPendingIntent
     }
 }

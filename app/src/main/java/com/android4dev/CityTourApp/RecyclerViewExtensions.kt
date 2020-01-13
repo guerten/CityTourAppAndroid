@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import com.android4dev.CityTourApp.models.TouristicPlace
 
+/* Extension to be able to notify de adapter when we make any change in the touristicPlace items */
 fun RecyclerView.Adapter<*>.autoNotify(oldList: List<TouristicPlace>, newList: List<TouristicPlace>, compare: (TouristicPlace, TouristicPlace) -> Boolean) {
 
     val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {

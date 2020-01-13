@@ -89,10 +89,24 @@ class MyBackgroundLocationService : Service() {
         mLocationClient = LocationServices.getFusedLocationProviderClient(applicationContext)
     }
 
+    override fun onBind(intent: Intent): IBinder? {
+        return null
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         getLocationUpdates()
         return START_STICKY
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val broadcastIntent = Intent()
+        broadcastIntent.action = "restartservice"
+        broadcastIntent.setClass(this, BackgroundLocationServiceRestarter::class.java!!)
+        this.sendBroadcast(broadcastIntent)
+        mLocationClient?.removeLocationUpdates(locationCallback)
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startMyOwnForeground() {
@@ -129,20 +143,6 @@ class MyBackgroundLocationService : Service() {
         mLocationClient?.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        return null
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        val broadcastIntent = Intent()
-        broadcastIntent.action = "restartservice"
-        broadcastIntent.setClass(this, BackgroundLocationServiceRestarter::class.java!!)
-        this.sendBroadcast(broadcastIntent)
-        mLocationClient?.removeLocationUpdates(locationCallback)
-    }
-
-
     /* METHODS TO GET THE VALUES OF THE SETTINGS SAVED IN SHARED PREFERENCES*/
     private fun getSharedPref () : SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(this)
@@ -163,7 +163,6 @@ class MyBackgroundLocationService : Service() {
         if (jsonTouristicPlaceAux != null){
             return gsonCurrentKnownLocation.fromJson(jsonTouristicPlaceAux, TouristicPlace::class.java)
         }
-
         return null
     }
 

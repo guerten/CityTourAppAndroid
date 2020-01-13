@@ -134,6 +134,7 @@ class NotificationService : Service() {
         NotificationGenerator.managerInstance.notification.contentView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_action_play_black)
         NotificationGenerator.managerInstance.notificationManager?.notify(NOTIFICATION_ID, NotificationGenerator.managerInstance.notification)
     }
+
     private fun touristicPlaceExists () : Boolean {
         return ::touristicPlace.isInitialized
     }

@@ -10,8 +10,6 @@ import android.util.Log
 
 class BackgroundLocationServiceRestarter : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Log.i("Broadcast Listened", "Service tried to stop")
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(Intent(context, MyBackgroundLocationService::class.java))
         } else {

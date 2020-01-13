@@ -28,20 +28,20 @@ class TouristicPlaceAdapter(val context: Context) : RecyclerView.Adapter<Tourist
         holder.bind(touristicPlaceItem, context)
     }
 
-    // Gets the number of turistic places in the list
     override fun getItemCount(): Int {
         return items.size
     }
 
     inner class ViewHolder (view: View) : RecyclerView.ViewHolder(view) {
-        val tpTitle = view.textView_tpTitle
-        val tpSubtitle = view.textView_tpSubtitle
-        val tpImage = view.imageView_tpImage
-        val tpDistance = view.textView_tpDistance
+        private val tpTitle = view.textView_tpTitle
+        private val tpSubtitle = view.textView_tpSubtitle
+        private val tpImage = view.imageView_tpImage
+        private val tpDistance = view.textView_tpDistance
 
         fun bind(touristicPlace:TouristicPlace, context: Context){
             tpTitle.text = touristicPlace.title
             tpSubtitle.text = touristicPlace.subtitle
+            var meters = touristicPlace.distance!!
             tpDistance.text = "${"%.1f".format(touristicPlace.distance!!.div(1000))} km"
 
             var imageId = context.resources.getIdentifier(touristicPlace.imageFileName+"_rounded", "drawable", context.packageName)

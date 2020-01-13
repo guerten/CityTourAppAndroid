@@ -24,7 +24,6 @@ import android.support.v7.widget.DividerItemDecoration
 import android.util.Log
 import android.widget.Toast
 import com.android4dev.CityTourApp.data.DataInitializer
-import com.android4dev.CityTourApp.models.Coordinates
 import kotlinx.android.synthetic.main.fragment_map.*
 import kotlin.collections.ArrayList
 import com.android4dev.CityTourApp.models.TP_Type
@@ -37,6 +36,7 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import org.jetbrains.anko.doAsync
 
 class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     private var shouldUpdateView: Boolean = false
     private var currentKnownLocation: LatLng = Globals.DEFAULT_LOCATION
     private var activityActive : Boolean = false
-    lateinit var tpAdapter : TouristicPlaceAdapter
+    private lateinit var tpAdapter : TouristicPlaceAdapter
     private var firstLocationReceived: Boolean = false
 
     companion object {
@@ -97,6 +97,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         Log.i ("Service status", "Not running")
         return false
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
 
@@ -158,6 +159,29 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         }
     }
 
+
+    override fun onMarkerClick(marker: Marker?): Boolean {
+        return if(marker != null) {
+            val distanceToTouristicPlace = distance(marker.position.latitude, marker.position.longitude, currentKnownLocation.latitude, currentKnownLocation.longitude)
+            marker.snippet = "Distancia: ${String.format("%.1f", distanceToTouristicPlace)} metros"
+            marker.showInfoWindow()
+            true
+        } else {
+            false
+        }
+    }
+
+    override fun onInfoWindowClick(marker: Marker?) {
+        if (marker != null) {
+            val touristicPlace = touristicPlacesList.firstOrNull { it.title == marker.title }
+            if (touristicPlace != null) {
+                val intent = Intent(applicationContext,TouristicPlaceDetail::class.java)
+                intent.putExtra("tpItem", touristicPlace)
+                applicationContext.startActivity(intent)
+            }
+        }
+    }
+
     private fun resizeBitmap(type: TP_Type): Bitmap? {
 
         val imageBitmap = when (type) {
@@ -174,6 +198,43 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         return Bitmap.createScaledBitmap(imageBitmap, 128, 128, false)
 
     }
+
+    private fun centerMapToPosition(location: LatLng) {
+        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, 17f)
+        mMap.animateCamera(cameraUpdate)
+    }
+
+    override fun onLocationChanged(newLocation: Location) {
+        shouldUpdateView = true
+        currentKnownLocation = LatLng(newLocation.latitude,newLocation.longitude)
+        if (!firstLocationReceived) {
+            firstLocationReceived = true
+            centerMapToPosition(currentKnownLocation)
+        }
+        doAsync {
+            var newTouristicPlaceOrderedClass = getTouristicPlacesListOrdered(currentKnownLocation)
+            if (activityActive){
+                tpAdapter.items = newTouristicPlaceOrderedClass
+            }
+            touristicPlacesList = newTouristicPlaceOrderedClass
+        }
+
+    }
+
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        Log.v("Loc Update", "\nProvider status changed: $provider, status=$status, extras=$extras");
+    }
+
+    override fun onProviderEnabled(provider: String?) {
+        Log.v("Loc Update", "\nProvider enabled: $provider");
+    }
+
+    override fun onProviderDisabled(provider: String?) {
+        Log.v("Loc Update", "\nProvider disabled: $provider");
+    }
+
+
+    /* BOTTOM SHEET */
 
     private fun initBottomSheetView() {
 
@@ -204,33 +265,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         })
     }
 
-    override fun onLocationChanged(newLocation: Location) {
-        shouldUpdateView = true
-        currentKnownLocation = LatLng(newLocation.latitude,newLocation.longitude)
-        if (!firstLocationReceived) {
-            firstLocationReceived = true
-            centerMapToPosition(currentKnownLocation)
-        }
-        var newTouristicPlaceOrderedClass = getTouristicPlacesListOrdered(currentKnownLocation)
-        if (activityActive){
-            tpAdapter.items = newTouristicPlaceOrderedClass
-            touristicPlacesList = newTouristicPlaceOrderedClass
-        }
-    }
+    /* END: BOTTOM SHEET */
 
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        Log.v("Loc Update", "\nProvider status changed: $provider, status=$status, extras=$extras");
 
-    }
 
-    override fun onProviderEnabled(provider: String?) {
-        Log.v("Loc Update", "\nProvider enabled: $provider");
-    }
-
-    override fun onProviderDisabled(provider: String?) {
-        Log.v("Loc Update", "\nProvider disabled: $provider");
-    }
-
+    /* TOURISTIC PLACES LIST ORDER */
 
     private fun getTouristicPlacesListOrdered(newLocation: LatLng): ArrayList<TouristicPlace> {
         val cloneTouristicPlacesList = deepCopiedArrayList()
@@ -239,12 +278,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
             cloneTouristicPlacesList[index].distance = distanceToTouristicPlace
         }
         return ArrayList(cloneTouristicPlacesList.sortedWith(compareBy {it.distance}))
-/*
-        touristicPlacesList.sortBy { it.distance }
-*/
     }
 
-    fun deepCopiedArrayList () : ArrayList<TouristicPlace> {
+    private fun deepCopiedArrayList () : ArrayList<TouristicPlace> {
         var iterator = touristicPlacesList.iterator()
         var arrayListCloned = arrayListOf<TouristicPlace>()
         while(iterator.hasNext()){
@@ -265,10 +301,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         return loc1.distanceTo(loc2)
     }
 
-    private fun centerMapToPosition(location: LatLng) {
-        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(location, 17f)
-        mMap.animateCamera(cameraUpdate)
-    }
+    /* END: TOURISTIC PLACES LIST ORDER */
+
 
     /* PREFERENCES: SAVE AND GET LAST KNOWN LOCATION */
 
@@ -292,26 +326,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         }
     }
 
-    override fun onMarkerClick(marker: Marker?): Boolean {
-        return if(marker != null) {
-            val distanceToTouristicPlace = distance(marker.position.latitude, marker.position.longitude, currentKnownLocation.latitude, currentKnownLocation.longitude)
-            marker.snippet = "Distancia: ${String.format("%.1f", distanceToTouristicPlace)} metros"
-            marker.showInfoWindow()
-            true
-        } else {
-            false
-        }
-    }
+    /* END: PREFERENCES: SAVE AND GET LAST KNOWN LOCATION */
 
-    override fun onInfoWindowClick(marker: Marker?) {
-        if (marker != null) {
-            val touristicPlace = touristicPlacesList.firstOrNull { it.title == marker.title }
-            if (touristicPlace != null) {
-                val intent = Intent(applicationContext,TouristicPlaceDetail::class.java)
-                intent.putExtra("tpItem", touristicPlace)
-                applicationContext.startActivity(intent)
-            }
-        }
-    }
 
 }
