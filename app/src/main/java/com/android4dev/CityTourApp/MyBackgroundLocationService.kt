@@ -1,76 +1,131 @@
 package com.android4dev.CityTourApp
 
-import android.R
-import android.app.NotificationManager
+import android.app.Notification
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
 import android.os.Looper
-import android.support.v4.app.NotificationCompat
+import android.preference.PreferenceManager
 import android.support.v4.content.ContextCompat
-import android.util.Log
-import com.android4dev.CityTourApp.models.Coordinates
-import com.android4dev.CityTourApp.models.TP_Type
 import com.android4dev.CityTourApp.models.TouristicPlace
 import com.google.android.gms.location.*
+import com.google.gson.Gson
+import android.os.Build
+import android.app.NotificationManager
+import android.app.NotificationChannel
+import android.content.Context
+import android.graphics.Color
+import android.support.annotation.RequiresApi
+import android.support.v4.app.NotificationCompat
 
 
 class MyBackgroundLocationService : Service() {
-
-    private val TAG = "BACKGROUND LOC SERVICE"
     private var mLocationClient: FusedLocationProviderClient? = null
-    private val closeTouristicPlaces: ArrayList<TouristicPlace> = ArrayList()
     private var currentVisitingTouristicPlace: TouristicPlace? = null
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult?) {
-
             if (locationResult == null) {
                 return
             }
-
             val newLocation: Location = locationResult.locations.last()
 
-            Log.d(TAG, newLocation.latitude.toString())
-
-            // ordeno los nuevos datos con respecto a mi ubicación actual modificada
-            var mainActivityAux = MainActivity.getMainInstance()
+            // Order touristic places given the new location
+            val mainActivityAux = MainActivity.getMainInstance()
             mainActivityAux.onLocationChanged(newLocation)
 
-            Log.d(TAG, newLocation.latitude.toString())
+            val sharedPref = getSharedPref()
 
-            /* compruebo si tengo que hacer reproducir alguna audioguía o bien no hacer nada */
-            var firstTouristicPlaceInList = mainActivityAux.touristicPlacesList[0]
-            if (firstTouristicPlaceInList.distance!! <= 50.0) {
-                if (firstTouristicPlaceInList != currentVisitingTouristicPlace) {
-                    currentVisitingTouristicPlace = firstTouristicPlaceInList
-
-                    var serviceIntent: Intent = Intent(applicationContext, NotificationService::class.java)
-                    serviceIntent!!.putExtra("touristicPlace", currentVisitingTouristicPlace)
-                    serviceIntent!!.action = NOTIFY_INIT
-                    startService(serviceIntent)
-                    NotificationGenerator.managerInstance.showBigContentMusicPlayer(applicationContext, currentVisitingTouristicPlace!!)
-                }
-                /* si no no hago nada ya que el mismo audio es el que ya se esta reproduciendo*/
-                else {  }
-            } else {
-                currentVisitingTouristicPlace = null
+            if (currentVisitingTouristicPlace == null){
+                currentVisitingTouristicPlace = getCurrentVisitingTouristicPlacePref(Globals.TPVISITING_PREF, sharedPref)
             }
+
+
+            /* Check whether the user has disabled push notifications */
+            val pushNotificationPref = getBooleanPref(Globals.PUSH_NOTIFICATION_SETTING, sharedPref)
+            if (pushNotificationPref){
+                /* Check if any touristic place is nearer than x metres */
+                val firstTouristicPlaceInList = mainActivityAux.touristicPlacesList[0]
+
+                if (firstTouristicPlaceInList.distance!! <= 50.0) {
+                    /* Check if the now nearest close touristicPlace is different from the last one */
+                    if (currentVisitingTouristicPlace == null || firstTouristicPlaceInList.title != currentVisitingTouristicPlace!!.title) {
+                        currentVisitingTouristicPlace = firstTouristicPlaceInList
+                        savePref (Globals.TPVISITING_PREF, currentVisitingTouristicPlace!!, sharedPref)
+
+                        val serviceIntent = Intent(applicationContext, NotificationService::class.java)
+                        serviceIntent.putExtra("touristicPlace", currentVisitingTouristicPlace)
+
+                        val startNotificationWithAudioPlaying = getBooleanPref(Globals.AUTOPLAY_SETTING, sharedPref)
+                        if (startNotificationWithAudioPlaying){
+                            serviceIntent.action = NOTIFY_INIT
+                        }
+                        else {
+                            serviceIntent.action = NOTIFY_INIT_PAUSED
+                        }
+                        startService(serviceIntent)
+                        NotificationGenerator.managerInstance.showBigContentMusicPlayer(applicationContext, currentVisitingTouristicPlace!!)
+                    }
+                }
+
+                else {
+                    currentVisitingTouristicPlace = null
+                }
+            }
+
         }
     }
 
+
     override fun onCreate() {
-        Log.e(TAG, "on create")
         super.onCreate()
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+            startMyOwnForeground()
+        else
+            startForeground(1, Notification())
         mLocationClient = LocationServices.getFusedLocationProviderClient(applicationContext)
     }
 
+    override fun onBind(intent: Intent): IBinder? {
+        return null
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.e(TAG, "on start commmand")
         getLocationUpdates()
         return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val broadcastIntent = Intent()
+        broadcastIntent.action = "restartservice"
+        broadcastIntent.setClass(this, BackgroundLocationServiceRestarter::class.java!!)
+        this.sendBroadcast(broadcastIntent)
+        mLocationClient?.removeLocationUpdates(locationCallback)
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startMyOwnForeground() {
+        val NOTIFICATION_CHANNEL_ID = Globals.channelId
+        val channelName = "Background Service"
+        val chan = NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE)
+        chan.lightColor = Color.BLUE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(chan)
+
+        val notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+        val notification = notificationBuilder.setOngoing(true)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build()
+        startForeground(2, notification)
     }
 
     private fun getLocationUpdates() {
@@ -88,13 +143,31 @@ class MyBackgroundLocationService : Service() {
         mLocationClient?.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
     }
 
-    override fun onBind(intent: Intent): IBinder? {
+    /* METHODS TO GET THE VALUES OF THE SETTINGS SAVED IN SHARED PREFERENCES*/
+    private fun getSharedPref () : SharedPreferences {
+        return PreferenceManager.getDefaultSharedPreferences(this)
+    }
+
+    private fun savePref(key: String, objectToSave: Any, sharedPref: SharedPreferences) {
+        val gsonObject = Gson()
+        val jsonObject = gsonObject.toJson(objectToSave)
+        with(sharedPref.edit()){
+            putString(key, jsonObject)
+            commit()
+        }
+    }
+
+    private fun getCurrentVisitingTouristicPlacePref(key: String, sharedPref: SharedPreferences) : TouristicPlace? {
+        val gsonCurrentKnownLocation = Gson()
+        val jsonTouristicPlaceAux = sharedPref.getString(key, null)
+        if (jsonTouristicPlaceAux != null){
+            return gsonCurrentKnownLocation.fromJson(jsonTouristicPlaceAux, TouristicPlace::class.java)
+        }
         return null
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.e(TAG, "On destroy")
-        mLocationClient?.removeLocationUpdates(locationCallback)
+    private fun getBooleanPref(key: String, sharedPref: SharedPreferences) : Boolean {
+        return sharedPref.getBoolean(key, true)
     }
+
 }

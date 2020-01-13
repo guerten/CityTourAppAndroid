@@ -4,20 +4,16 @@ import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import com.android4dev.CityTourApp.models.TouristicPlace
 import android.view.View
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_touristic_place_detail.*
 
 
 class TouristicPlaceDetail : AppCompatActivity() {
 
     private lateinit var touristicPlace: TouristicPlace
-
-    private val TAG = "Activity NOTIFICATION"
 
     private var ng: NotificationGenerator? = null
 
@@ -45,22 +41,13 @@ class TouristicPlaceDetail : AppCompatActivity() {
         })
 
         tpdFullLayout.setOnTouchListener(object : OnSwipeTouchListener(this) {
-            override fun onSwipeLeft() {
-                Log.d("ViewSwipe", "Left")
-            }
 
             override fun onSwipeRight() {
                 finish()
-                Log.d("ViewSwipe", "Right")
             }
         })
     }
 
-
-    /**
-     * Handle all notification test buttons.
-     * @param [view] identify the button.
-     */
     fun showNotification(view: View) {
         if (null == ng) ng = NotificationGenerator()
 
@@ -77,6 +64,8 @@ class TouristicPlaceDetail : AppCompatActivity() {
     }
 }
 
+
+// Add swipe right behavior on this activity
 open class OnSwipeTouchListener (context: Context) : View.OnTouchListener {
 
     private val gestureDetector = GestureDetector(context, GestureListener())
@@ -112,9 +101,8 @@ open class OnSwipeTouchListener (context: Context) : View.OnTouchListener {
                             onSwipeLeft()
                         }
                     }
-                } else {
-                    // onTouch(e);
                 }
+
             } catch (exception: Exception) {
                 exception.printStackTrace()
             }
