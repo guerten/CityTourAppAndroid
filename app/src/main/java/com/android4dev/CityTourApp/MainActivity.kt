@@ -28,7 +28,6 @@ import com.android4dev.CityTourApp.models.Coordinates
 import kotlinx.android.synthetic.main.fragment_map.*
 import kotlin.collections.ArrayList
 import com.android4dev.CityTourApp.models.TP_Type
-import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.*
 import com.google.gson.Gson
@@ -46,8 +45,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
     var touristicPlacesList: ArrayList<TouristicPlace> = DataInitializer().getTouristicPlaces()
     private var shouldUpdateView: Boolean = false
     private var currentKnownLocation: LatLng = Globals.DEFAULT_LOCATION
-    var activityActive : Boolean = false
-    private lateinit var tpAdapter : TouristicPlaceAdapter
+    private var activityActive : Boolean = false
+    lateinit var tpAdapter : TouristicPlaceAdapter
     private var firstLocationReceived: Boolean = false
 
     companion object {
@@ -184,7 +183,11 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback, LocationListener,
         touristicPlacesRecyclerView.addItemDecoration(mDividerItemDecoration)
 
         touristicPlacesList = getTouristicPlacesListOrdered(currentKnownLocation)
+
         tpAdapter = TouristicPlaceAdapter(this)
+
+        touristicPlacesRecyclerView.setHasFixedSize(true)
+        touristicPlacesRecyclerView.setItemViewCacheSize(20)
         touristicPlacesRecyclerView.adapter = tpAdapter
         tpAdapter.items = touristicPlacesList
 

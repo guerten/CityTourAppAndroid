@@ -12,8 +12,6 @@ import android.os.Build.VERSION_CODES.O
 import android.view.View
 import android.widget.RemoteViews
 import com.android4dev.CityTourApp.models.TouristicPlace
-import android.opengl.ETC1.getHeight
-import android.opengl.ETC1.getWidth
 
 
 const val NOTIFY_DELETE = Globals.TPVISITING_PREF + ".delete"
@@ -96,10 +94,9 @@ class NotificationGenerator {
         val pendingIntentPlay = PendingIntent.getService(context, 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT)
         smallView.setOnClickPendingIntent(R.id.status_bar_play, pendingIntentPlay)
 
-        var imageId = context.resources.getIdentifier(touristicPlace.imageFileName, "drawable", context.packageName)
-        var imageBitmap = BitmapFactory.decodeResource(context.resources, imageId)
-        var imageCircleBitmap = StylesManager.getCircleBitmap(imageBitmap)
-        smallView.setImageViewBitmap(R.id.status_bar_icon, imageCircleBitmap)
+        var imageId = context.resources.getIdentifier(touristicPlace.imageFileName+"_rounded", "drawable", context.packageName)
+
+        smallView.setImageViewResource(R.id.status_bar_icon, imageId)
 
         smallView.setTextViewText(R.id.status_bar_place_discovered, touristicPlace.title + " discovered")
     }

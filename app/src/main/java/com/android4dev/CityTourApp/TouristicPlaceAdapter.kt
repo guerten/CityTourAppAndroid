@@ -44,10 +44,8 @@ class TouristicPlaceAdapter(val context: Context) : RecyclerView.Adapter<Tourist
             tpSubtitle.text = touristicPlace.subtitle
             tpDistance.text = "${"%.1f".format(touristicPlace.distance!!.div(1000))} km"
 
-            var imageId = context.resources.getIdentifier(touristicPlace.imageFileName, "drawable", context.packageName)
-            var imageBitmap = BitmapFactory.decodeResource(context.resources, imageId)
-            var imageCircleBitmap = StylesManager.getCircleBitmap(imageBitmap)
-            tpImage.setImageBitmap(imageCircleBitmap)
+            var imageId = context.resources.getIdentifier(touristicPlace.imageFileName+"_rounded", "drawable", context.packageName)
+            tpImage.setImageResource(imageId)
 
             itemView.setOnClickListener {
                 val intent = Intent(context,TouristicPlaceDetail::class.java)
